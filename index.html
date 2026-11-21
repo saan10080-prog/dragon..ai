@@ -1,0 +1,2849 @@
+<!DOCTYPE html>
+<html lang="hi-Latn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DRAGON AI // PRO NEURAL HUD v12.2</title>
+  <style>
+    :root {
+      --bg: #02050a;
+      --panel: rgba(7, 19, 34, 0.88);
+      --primary: #00f3ff;
+      --secondary: #8b5cf6;
+      --green: #00ff9d;
+      --red: #ff2e63;
+      --amber: #ffb703;
+      --text: #eaf8ff;
+      --dim: #7396ad;
+      --border: rgba(0, 243, 255, 0.36);
+      --grid-color: rgba(0, 243, 255, 0.06);
+      --panel-radius: 14px;
+      --panel-clip: none;
+      --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-mono: 'Courier New', monospace;
+      --panel-shadow: 0 0 24px rgba(0, 243, 255, 0.08);
+      --backdrop: blur(12px);
+      --anim-speed: 16s;
+      --emote-glow: rgba(0, 243, 255, 0.14);
+    }
+
+    body.mode-jarvis {
+      --bg: #02060c;
+      --panel: rgba(6, 20, 36, 0.88);
+      --primary: #00f3ff;
+      --secondary: #0099ff;
+      --green: #00ff9d;
+      --red: #ff2e63;
+      --amber: #ffb703;
+      --text: #e8fbff;
+      --dim: #799fb6;
+      --border: rgba(0, 243, 255, 0.42);
+      --grid-color: rgba(0, 243, 255, 0.07);
+      --panel-radius: 14px;
+      --panel-clip: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+      --panel-shadow: 0 0 28px rgba(0, 243, 255, 0.14), inset 0 0 18px rgba(0, 243, 255, 0.05);
+      --backdrop: blur(12px);
+      --anim-speed: 14s;
+    }
+
+    body.mode-ladka {
+      --bg: #030712;
+      --panel: rgba(8, 22, 48, 0.92);
+      --primary: #38bdf8;
+      --secondary: #2563eb;
+      --green: #34d399;
+      --red: #f43f5e;
+      --amber: #fbbf24;
+      --text: #f0f9ff;
+      --dim: #7dd3fc;
+      --border: rgba(56, 189, 248, 0.48);
+      --grid-color: rgba(56, 189, 248, 0.08);
+      --panel-radius: 10px;
+      --panel-clip: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+      --panel-shadow: 0 0 32px rgba(37, 99, 235, 0.24), inset 0 0 18px rgba(56, 189, 248, 0.09);
+      --backdrop: blur(12px);
+      --anim-speed: 10s;
+    }
+
+    body.mode-titan {
+      --bg: #040405;
+      --panel: rgba(14, 15, 18, 0.96);
+      --primary: #ffffff;
+      --secondary: #b8c0cc;
+      --green: #ffffff;
+      --red: #e2e8f0;
+      --amber: #f1f5f9;
+      --text: #ffffff;
+      --dim: #9aa3b2;
+      --border: rgba(255, 255, 255, 0.56);
+      --grid-color: rgba(255, 255, 255, 0.07);
+      --panel-radius: 4px;
+      --panel-clip: polygon(14px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 18px 100%, 0 calc(100% - 18px), 0 14px);
+      --panel-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0 32px rgba(255, 255, 255, 0.1), 0 16px 40px rgba(0, 0, 0, 0.92);
+      --backdrop: none;
+      --anim-speed: 8s;
+    }
+
+    body.emote-focus { --emote-glow: rgba(0, 243, 255, 0.16); --anim-speed: 11s; }
+    body.emote-hype { --emote-glow: rgba(255, 46, 99, 0.2); --anim-speed: 6.5s; }
+    body.emote-chill { --emote-glow: rgba(0, 255, 157, 0.14); --anim-speed: 19s; }
+    body.emote-stealth { --emote-glow: rgba(139, 92, 246, 0.16); --anim-speed: 14s; }
+    body.emote-aura { --emote-glow: rgba(255, 94, 196, 0.22); --anim-speed: 9.5s; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-main); }
+
+    body {
+      background:
+        radial-gradient(circle at 22% 20%, var(--emote-glow), transparent 48%),
+        radial-gradient(circle at 82% 80%, color-mix(in srgb, var(--secondary) 16%, transparent), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      transition: background 0.35s ease, color 0.3s ease;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -120px;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+      animation: interiorDrift var(--anim-speed) linear infinite;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(
+        115deg,
+        transparent 38%,
+        color-mix(in srgb, var(--primary) 9%, transparent) 50%,
+        transparent 62%
+      );
+      pointer-events: none;
+      z-index: 1;
+      animation: interiorSweep calc(var(--anim-speed) * 0.65) ease-in-out infinite alternate;
+    }
+
+    body.mode-titan::before {
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 5px),
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 100% 5px, 48px 48px, 48px 48px;
+      animation: titanScanDrift 6s linear infinite;
+    }
+
+    body.mode-ladka::before {
+      background-image:
+        linear-gradient(45deg, rgba(56, 189, 248, 0.06) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(37, 99, 235, 0.06) 25%, transparent 25%);
+      background-size: 40px 40px;
+      animation: vanguardShift 9s linear infinite;
+    }
+
+    @keyframes interiorDrift { 0% { transform: translate(0, 0); } 100% { transform: translate(32px, 32px); } }
+    @keyframes interiorSweep { 0% { transform: translateX(-28%) skewX(-8deg); opacity: 0.55; } 100% { transform: translateX(28%) skewX(-8deg); opacity: 0.95; } }
+    @keyframes titanScanDrift { 0% { transform: translateY(0); } 100% { transform: translateY(25px); } }
+    @keyframes vanguardShift { 0% { transform: translate(0, 0); } 100% { transform: translate(40px, -40px); } }
+
+    #clickFxLayer { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
+
+    .mini-voice-pip {
+      position: absolute; width: 12px; height: 12px; margin-left: -6px; margin-top: -6px;
+      border-radius: 50%; border: 1.5px solid var(--green); box-shadow: 0 0 8px var(--green);
+      animation: miniVoiceOut 0.34s ease-out forwards;
+    }
+    @keyframes miniVoiceOut { 0% { transform: scale(0.4); opacity: 1; } 100% { transform: scale(1.85); opacity: 0; } }
+
+    .tap-dot-ray {
+      position: absolute; width: 2px; height: 9px; margin-left: -1px; margin-top: -4.5px;
+      border-radius: 2px; background: var(--primary); box-shadow: 0 0 6px var(--primary);
+      transform-origin: center center; animation: tapDotFly 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .tap-hex-sm {
+      position: absolute; width: 18px; height: 18px; margin-left: -9px; margin-top: -9px;
+      border: 1.5px solid var(--primary); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      box-shadow: 0 0 8px var(--primary); animation: tapHexPop 0.32s ease-out forwards;
+    }
+    .tap-ring-sm {
+      position: absolute; width: 16px; height: 16px; margin-left: -8px; margin-top: -8px;
+      border-radius: 50%; border: 1.5px solid var(--primary); box-shadow: 0 0 8px var(--primary);
+      animation: tapRingPop 0.32s ease-out forwards;
+    }
+    .tap-shard-sm {
+      position: absolute; width: 6px; height: 6px; margin-left: -3px; margin-top: -3px;
+      background: var(--primary); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      box-shadow: 0 0 6px var(--primary); animation: tapShardPop 0.32s ease-out forwards;
+    }
+    .tap-pip-sm {
+      position: absolute; width: 14px; height: 14px; margin-left: -7px; margin-top: -7px;
+      border-radius: 4px; border: 1.5px dashed var(--primary); box-shadow: 0 0 8px var(--secondary);
+      animation: tapPipPop 0.34s ease-out forwards;
+    }
+
+    @keyframes tapDotFly { 0% { transform: rotate(var(--ang)) translateY(0px) scale(0.5); opacity: 1; } 100% { transform: rotate(var(--ang)) translateY(-16px) scale(1); opacity: 0; } }
+    @keyframes tapHexPop { 0% { transform: scale(0.4) rotate(0deg); opacity: 1; } 100% { transform: scale(1.65) rotate(45deg); opacity: 0; } }
+    @keyframes tapRingPop { 0% { transform: scale(0.4); opacity: 1; } 100% { transform: scale(1.9); opacity: 0; } }
+    @keyframes tapShardPop { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--sx), var(--sy)) scale(0.2); opacity: 0; } }
+    @keyframes tapPipPop { 0% { transform: scale(0.4) rotate(0deg); opacity: 1; } 100% { transform: scale(1.75) rotate(90deg); opacity: 0; } }
+
+    .hud-wrap {
+      position: relative; z-index: 2; max-width: 1080px; margin: 0 auto;
+      padding: 8px 10px 12px; display: flex; flex-direction: column; gap: 8px;
+      min-height: 100dvh;
+    }
+
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;
+      padding: 8px 12px; background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--panel-radius); clip-path: var(--panel-clip);
+      box-shadow: var(--panel-shadow); backdrop-filter: var(--backdrop); transition: all 0.3s ease;
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 8px; font-weight: 900; letter-spacing: 1.8px;
+      color: var(--primary); font-size: 0.85rem;
+      text-shadow: 0 0 14px color-mix(in srgb, var(--primary) 45%, transparent);
+    }
+
+    .pulse-led {
+      width: 9px; height: 9px; border-radius: 50%; background: var(--green);
+      box-shadow: 0 0 14px var(--green); animation: blink 1.3s infinite;
+    }
+    @keyframes blink { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.45); opacity: 0.45; } }
+
+    .top-actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+
+    .shield-pill {
+      font-family: var(--font-mono); font-size: 0.64rem; padding: 3px 8px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--primary);
+      background: color-mix(in srgb, var(--primary) 10%, transparent); letter-spacing: 0.7px;
+    }
+
+    .clock { font-family: var(--font-mono); font-weight: 700; font-size: 0.78rem; color: var(--primary); letter-spacing: 1px; }
+
+    .hud-btn {
+      background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary);
+      border: 1px solid var(--primary); padding: 5px 9px; border-radius: 7px;
+      font-weight: 800; font-size: 0.68rem; letter-spacing: 0.9px; cursor: pointer; transition: 0.2s;
+    }
+    .hud-btn:hover {
+      background: var(--primary); color: var(--bg);
+      box-shadow: 0 0 18px color-mix(in srgb, var(--primary) 55%, transparent);
+    }
+    .hud-btn.pro-active {
+      background: var(--green); border-color: var(--green); color: var(--bg);
+      box-shadow: 0 0 16px color-mix(in srgb, var(--green) 50%, transparent);
+    }
+
+    .pro-subbar {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+      padding: 6px 10px; background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--panel-radius); box-shadow: var(--panel-shadow); backdrop-filter: var(--backdrop);
+    }
+    .pro-subbar-label {
+      font-family: var(--font-mono); font-size: 0.65rem; font-weight: 800;
+      letter-spacing: 1.1px; color: var(--primary);
+    }
+    .pro-mode-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+    .pro-chip {
+      padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 78%, transparent); color: var(--text);
+      font-family: var(--font-mono); font-size: 0.63rem; font-weight: 800; letter-spacing: 0.5px;
+      cursor: pointer; transition: 0.18s;
+    }
+    .pro-chip:hover { border-color: var(--primary); color: var(--primary); }
+    .pro-chip.active-pro-sub {
+      background: var(--primary); color: var(--bg); border-color: var(--primary);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--primary) 45%, transparent);
+    }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(1, 5, 12, 0.86); backdrop-filter: blur(10px);
+      z-index: 50; display: none; align-items: center; justify-content: center; padding: 14px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-card {
+      width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto;
+      background: var(--panel); border: 1px solid var(--primary); border-radius: 16px;
+      padding: 18px; box-shadow: 0 0 42px color-mix(in srgb, var(--primary) 26%, transparent);
+      display: flex; flex-direction: column; gap: 14px;
+    }
+
+    .modal-head {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border); padding-bottom: 10px;
+      color: var(--primary); font-weight: 800; letter-spacing: 1.5px; font-size: 0.88rem;
+    }
+
+    .close-btn {
+      background: color-mix(in srgb, var(--primary) 14%, transparent); border: 1px solid var(--primary);
+      color: var(--primary); padding: 5px 11px; border-radius: 6px; cursor: pointer;
+      font-weight: 700; font-size: 0.75rem; letter-spacing: 1px;
+    }
+
+    .set-group {
+      background: color-mix(in srgb, var(--primary) 4%, transparent); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 9px;
+    }
+
+    .set-title { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); font-weight: 800; }
+
+    .preset-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 8px; }
+
+    .preset-btn {
+      padding: 10px 11px; border-radius: 8px; border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 78%, transparent); color: var(--text);
+      font-size: 0.78rem; font-weight: 800; letter-spacing: 0.8px; cursor: pointer; text-align: left; transition: 0.2s;
+    }
+    .preset-btn span { display: block; font-size: 0.67rem; font-weight: 500; color: var(--dim); margin-top: 2px; }
+    .preset-btn.selected {
+      border-color: var(--primary); background: color-mix(in srgb, var(--primary) 20%, transparent);
+      color: var(--primary); box-shadow: 0 0 14px color-mix(in srgb, var(--primary) 30%, transparent);
+    }
+    .preset-btn.selected span { color: var(--text); }
+
+    .set-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 0.84rem; }
+
+    select, input[type="range"] { accent-color: var(--primary); }
+    select {
+      width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 10px; font-size: 0.82rem; outline: none;
+    }
+
+    .theme-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+    .theme-pill {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 75%, transparent);
+      color: var(--text); font-size: 0.73rem; font-weight: 700; cursor: pointer; transition: 0.18s;
+    }
+    .theme-pill:hover { border-color: var(--primary); }
+    .theme-pill.active-mode {
+      border-color: var(--primary); background: color-mix(in srgb, var(--primary) 22%, transparent);
+      color: var(--primary); box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 25%, transparent);
+    }
+
+    .grid-main { display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 8px; flex: 1; }
+    @media (max-width: 860px) { .grid-main { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--panel-radius);
+      clip-path: var(--panel-clip); padding: 10px 12px; backdrop-filter: var(--backdrop);
+      box-shadow: var(--panel-shadow); position: relative; overflow: hidden; transition: all 0.3s ease;
+    }
+
+    body.mode-titan .card::before {
+      content: ""; position: absolute; inset: 6px; border: 1px dashed rgba(255, 255, 255, 0.2); pointer-events: none;
+    }
+    body.mode-titan .card::after {
+      content: "TITAN // ANIMATED SCANLINE"; position: absolute; top: 8px; right: 12px;
+      font-family: var(--font-mono); font-size: 0.54rem; letter-spacing: 1.6px;
+      color: rgba(255, 255, 255, 0.42); pointer-events: none;
+    }
+    body.mode-ladka .card::after {
+      content: "LADKA // VANGUARD PULSE"; position: absolute; top: 8px; right: 12px;
+      font-family: var(--font-mono); font-size: 0.54rem; letter-spacing: 1.6px;
+      color: rgba(56, 189, 248, 0.45); pointer-events: none;
+    }
+
+    .card-head {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.68rem; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--primary); padding-bottom: 6px; margin-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+
+    .reactor-box { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+    .state-badge {
+      padding: 3px 11px; border-radius: 999px; font-family: var(--font-mono);
+      font-size: 0.68rem; letter-spacing: 1.2px; border: 1px solid var(--primary);
+      color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, transparent);
+    }
+    .state-badge.mic-on { border-color: var(--red); color: var(--red); background: color-mix(in srgb, var(--red) 15%, transparent); }
+    .state-badge.spk-on { border-color: var(--green); color: var(--green); background: color-mix(in srgb, var(--green) 15%, transparent); }
+
+    .core-ring-wrap { position: relative; width: 176px; height: 176px; display: flex; align-items: center; justify-content: center; }
+
+    .arc { position: absolute; border-radius: 50%; border: 2px solid transparent; transition: border-color 0.25s ease, box-shadow 0.25s ease; }
+    .arc-1 {
+      inset: 0; border-top: 3px solid var(--orb-color, var(--primary));
+      border-bottom: 3px solid color-mix(in srgb, var(--orb-color, var(--primary)) 35%, transparent);
+      animation: rot var(--orb-spin, 5.5s) linear infinite; box-shadow: 0 0 24px color-mix(in srgb, var(--orb-color, var(--primary)) 30%, transparent);
+    }
+    .arc-2 { inset: 12px; border-left: 3px solid var(--orb-color2, var(--secondary)); border-right: 3px solid var(--orb-color, var(--primary)); animation: rotRev calc(var(--orb-spin, 5.5s) * 0.65) linear infinite; }
+    .arc-3 { inset: 25px; border: 1.5px dashed var(--orb-color, var(--primary)); opacity: 0.65; animation: rot calc(var(--orb-spin, 5.5s) * 1.8) linear infinite; }
+
+    body.mode-titan .arc-1, body.mode-titan .arc-2, body.mode-titan .arc-3 { border-radius: 22%; box-shadow: 0 0 20px rgba(255, 255, 255, 0.22); }
+    body.mode-ladka .arc-1, body.mode-ladka .arc-2 { border-radius: 30%; }
+
+    .orbit-dot { position: absolute; inset: 5px; border-radius: 50%; animation: rot var(--orb-spin, 4.2s) linear infinite; pointer-events: none; }
+    .orbit-dot::before {
+      content: ""; position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+      width: 7px; height: 7px; border-radius: 50%; background: var(--orb-color, var(--primary)); box-shadow: 0 0 12px var(--orb-color, var(--primary));
+    }
+
+    .core-btn {
+      --orb-color: var(--primary);
+      --orb-color2: var(--secondary);
+      --orb-spin: 5.5s;
+      --orb-pulse: 2.6s;
+      position: relative;
+      width: 112px;
+      height: 112px;
+      border-radius: 42% 42% 48% 48%;
+      border: 2px solid var(--orb-color);
+      cursor: pointer;
+      background:
+        radial-gradient(circle at 50% 15%, color-mix(in srgb, var(--orb-color) 30%, transparent), transparent 55%),
+        radial-gradient(circle at 50% 88%, color-mix(in srgb, var(--orb-color2) 24%, var(--panel)), var(--bg) 92%);
+      box-shadow:
+        0 0 34px color-mix(in srgb, var(--orb-color) 48%, transparent),
+        inset 0 0 20px color-mix(in srgb, var(--orb-color) 28%, transparent);
+      color: var(--orb-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      transition: transform 0.18s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease, filter 0.18s ease;
+      animation: corePulse var(--orb-pulse) ease-in-out infinite, roboFloat calc(var(--orb-pulse) * 1.35) ease-in-out infinite;
+    }
+
+    @keyframes roboFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-2.5px) rotate(0.6deg); }
+    }
+
+    .core-btn[data-circle-mode="pro"]     { --orb-color: #00ff9d; --orb-color2: #00e5ff; --orb-spin: 3.0s; --orb-pulse: 1.7s; }
+    .core-btn[data-circle-mode="special"] { --orb-color: #c084fc; --orb-color2: #38bdf8; --orb-spin: 4.2s; --orb-pulse: 2.1s; }
+    .core-btn[data-circle-mode="sharma"]  { --orb-color: #22d3ee; --orb-color2: #0284c7; --orb-spin: 3.4s; --orb-pulse: 1.8s; }
+    .core-btn[data-circle-mode="masti"]   { --orb-color: #ff5ec4; --orb-color2: #ffb703; --orb-spin: 2.2s; --orb-pulse: 1.15s; }
+    .core-btn[data-circle-mode="mazak"]   { --orb-color: #fbbf24; --orb-color2: #00f3ff; --orb-spin: 3.2s; --orb-pulse: 1.55s; }
+    .core-btn[data-circle-mode="gussa"]   { --orb-color: #ff2e63; --orb-color2: #ff7b00; --orb-spin: 1.7s; --orb-pulse: 0.95s; }
+    .core-btn[data-circle-mode="sad"]     { --orb-color: #60a5fa; --orb-color2: #475569; --orb-spin: 8.5s; --orb-pulse: 3.6s; }
+    .core-btn[data-circle-mode="fun"]     { --orb-color: #38bdf8; --orb-color2: #ff5ec4; --orb-spin: 3.5s; --orb-pulse: 1.5s; }
+    .core-btn[data-circle-mode="stealth"] { --orb-color: #8b5cf6; --orb-color2: #22d3ee; --orb-spin: 7.5s; --orb-pulse: 3.2s; }
+    .core-btn[data-circle-mode="hyper"]   { --orb-color: #00f3ff; --orb-color2: #ff2e63; --orb-spin: 1.5s; --orb-pulse: 0.9s; }
+
+    .robo-face {
+      width: 90px;
+      padding: 4px 6px 5px;
+      border-radius: 15px 15px 20px 20px;
+      border: 1.2px solid color-mix(in srgb, var(--orb-color) 60%, transparent);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--orb-color) 14%, rgba(4, 12, 24, 0.94)), rgba(2, 7, 16, 0.97));
+      box-shadow: inset 0 0 12px color-mix(in srgb, var(--orb-color) 20%, transparent);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+      pointer-events: none;
+      transition: transform 0.16s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .robo-crest {
+      width: 20px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--orb-color2), var(--orb-color), var(--orb-color2));
+      box-shadow: 0 0 8px var(--orb-color);
+      opacity: 0.9;
+    }
+
+    .robo-brow-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 6px;
+      height: 4px;
+    }
+
+    .robo-brow {
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--orb-color);
+      box-shadow: 0 0 8px var(--orb-color);
+      transition: transform 0.22s ease, opacity 0.22s ease, width 0.2s ease;
+    }
+
+    .robo-eyes-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      position: relative;
+    }
+
+    .robo-cheek {
+      width: 7px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--orb-color2);
+      opacity: 0.35;
+      filter: blur(1px);
+      transition: opacity 0.25s ease, transform 0.2s ease, background 0.25s ease;
+    }
+
+    .robo-eye {
+      width: 22px;
+      height: 15px;
+      border-radius: 9px 9px 11px 11px;
+      border: 1.6px solid var(--orb-color);
+      background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--orb-color) 20%, rgba(4, 14, 28, 0.96)), rgba(1, 5, 13, 0.98));
+      box-shadow: 0 0 12px color-mix(in srgb, var(--orb-color) 50%, transparent), inset 0 0 6px color-mix(in srgb, var(--orb-color) 25%, transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.18s ease, height 0.14s ease, width 0.18s ease, border-radius 0.2s ease, border-color 0.25s ease;
+    }
+
+    .robo-iris {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffffff 0%, var(--orb-color) 52%, color-mix(in srgb, var(--orb-color2) 85%, #000) 100%);
+      box-shadow: 0 0 10px var(--orb-color);
+      transform: translate(var(--rx, 0px), var(--ry, 0px));
+      transition: transform 0.11s ease-out, width 0.18s ease, height 0.18s ease, border-radius 0.18s ease;
+      position: relative;
+    }
+
+    .robo-iris::after {
+      content: "";
+      position: absolute;
+      top: 1.5px;
+      left: 1.5px;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .robo-mouth-zone {
+      width: 54px;
+      height: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .robo-visor-mouth {
+      width: 26px;
+      height: 5px;
+      border-radius: 999px;
+      border-bottom: 2px solid var(--orb-color);
+      border-left: 1.2px solid color-mix(in srgb, var(--orb-color) 45%, transparent);
+      border-right: 1.2px solid color-mix(in srgb, var(--orb-color) 45%, transparent);
+      background: radial-gradient(circle at 50% 80%, color-mix(in srgb, var(--orb-color) 28%, transparent), transparent 75%);
+      box-shadow: 0 2px 10px color-mix(in srgb, var(--orb-color) 45%, transparent);
+      transition: width 0.16s ease, height 0.16s ease, border-radius 0.18s ease, transform 0.16s ease, background 0.2s ease, border-color 0.25s ease;
+    }
+
+    .core-btn[data-circle-mode="gussa"] .robo-brow.left { transform: translateY(2px) rotate(26deg); }
+    .core-btn[data-circle-mode="gussa"] .robo-brow.right { transform: translateY(2px) rotate(-26deg); }
+    .core-btn[data-circle-mode="gussa"] .robo-eye { height: 10px; border-radius: 5px 5px 10px 10px; }
+    .core-btn[data-circle-mode="gussa"] .robo-visor-mouth {
+      width: 20px; height: 4px; border-radius: 999px;
+      border-bottom: none; border-top: 2px solid var(--orb-color);
+    }
+
+    .core-btn[data-circle-mode="sad"] .robo-brow.left { transform: translateY(1.5px) rotate(-18deg); opacity: 0.85; }
+    .core-btn[data-circle-mode="sad"] .robo-brow.right { transform: translateY(1.5px) rotate(18deg); opacity: 0.85; }
+    .core-btn[data-circle-mode="sad"] .robo-eye { height: 12px; opacity: 0.88; }
+    .core-btn[data-circle-mode="sad"] .robo-iris { transform: translate(var(--rx, 0px), 1.8px); }
+    .core-btn[data-circle-mode="sad"] .robo-visor-mouth {
+      width: 18px; height: 5px; border-radius: 12px 12px 4px 4px;
+      border-bottom: none; border-top: 2px solid var(--orb-color);
+      background: transparent;
+    }
+
+    .core-btn[data-circle-mode="masti"] .robo-brow.left { transform: translateY(-2px) rotate(-12deg); }
+    .core-btn[data-circle-mode="masti"] .robo-brow.right { transform: translateY(-2px) rotate(12deg); }
+    .core-btn[data-circle-mode="masti"] .robo-eye { height: 17px; border-radius: 11px; }
+    .core-btn[data-circle-mode="masti"] .robo-cheek { opacity: 0.72; transform: scale(1.2); }
+    .core-btn[data-circle-mode="masti"] .robo-visor-mouth {
+      width: 32px; height: 9px; border-radius: 4px 4px 16px 16px;
+      background: color-mix(in srgb, var(--orb-color) 22%, transparent);
+    }
+
+    .core-btn[data-circle-mode="mazak"] .robo-brow.left { transform: translateY(-2px) rotate(-10deg); }
+    .core-btn[data-circle-mode="mazak"] .robo-brow.right { transform: translateY(1px) rotate(8deg); }
+    .core-btn[data-circle-mode="mazak"] .robo-eye.right { height: 9px; border-radius: 999px; }
+    .core-btn[data-circle-mode="mazak"] .robo-visor-mouth {
+      width: 28px; height: 7px; transform: rotate(-5deg);
+      border-radius: 4px 4px 14px 14px;
+    }
+
+    .core-btn[data-circle-mode="fun"] .robo-eye { height: 16px; border-radius: 50%; }
+    .core-btn[data-circle-mode="fun"] .robo-cheek { opacity: 0.65; }
+    .core-btn[data-circle-mode="fun"] .robo-visor-mouth {
+      width: 30px; height: 8px; border-radius: 4px 4px 16px 16px;
+    }
+
+    .core-btn[data-circle-mode="special"] .robo-iris { width: 10px; height: 10px; border-radius: 3px; transform: rotate(45deg) translate(var(--rx, 0px), var(--ry, 0px)); }
+    .core-btn[data-circle-mode="hyper"] .robo-eye { border-radius: 7px; }
+    .core-btn[data-circle-mode="stealth"] .robo-eye { height: 11px; opacity: 0.9; }
+
+    .core-btn.speaking .robo-face {
+      animation: roboTalkBob 0.28s ease-in-out infinite alternate;
+    }
+    .core-btn.speaking .robo-visor-mouth {
+      animation: roboMouthSpeak 0.19s ease-in-out infinite alternate;
+      background: color-mix(in srgb, var(--orb-color) 35%, transparent);
+    }
+    .core-btn.speaking .robo-eye {
+      transform: scale(1.06);
+    }
+
+    .core-btn.tap-react .robo-face {
+      transform: scale(1.08) translateY(-2px);
+    }
+    .core-btn.tap-react .robo-eye {
+      height: 17px;
+      border-radius: 50%;
+    }
+    .core-btn.tap-react .robo-cheek {
+      opacity: 0.85;
+    }
+    .core-btn.tap-react .robo-visor-mouth {
+      width: 18px;
+      height: 9px;
+      border-radius: 50%;
+      border: 2px solid var(--orb-color);
+      background: color-mix(in srgb, var(--orb-color) 26%, transparent);
+    }
+
+    @keyframes roboTalkBob {
+      0% { transform: translateY(0px) rotate(-1.5deg); }
+      100% { transform: translateY(-2.5px) rotate(1.5deg); }
+    }
+    @keyframes roboMouthSpeak {
+      0% { width: 20px; height: 4px; border-radius: 999px; }
+      100% { width: 30px; height: 9px; border-radius: 6px 6px 14px 14px; }
+    }
+
+    .robo-eye.blink {
+      height: 2px !important;
+      border-radius: 999px !important;
+    }
+    .robo-eye.blink .robo-iris {
+      opacity: 0;
+    }
+
+    body.mode-titan .core-btn {
+      border-radius: 20px;
+      background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.2), transparent 60%), linear-gradient(160deg, #1b1d22 0%, #050507 100%);
+    }
+
+    .core-btn.shock { transform: scale(1.06) !important; filter: brightness(1.22); }
+
+    @keyframes corePulse {
+      0%, 100% { box-shadow: 0 0 26px color-mix(in srgb, var(--orb-color) 42%, transparent), inset 0 0 16px color-mix(in srgb, var(--orb-color) 30%, transparent); }
+      50% { box-shadow: 0 0 46px color-mix(in srgb, var(--orb-color) 78%, transparent), inset 0 0 24px color-mix(in srgb, var(--orb-color) 58%, transparent); }
+    }
+
+    .core-sub { font-family: var(--font-mono); font-size: 0.44rem; font-weight: 700; letter-spacing: 1.2px; color: var(--orb-color); opacity: 0.92; }
+    .core-tag { font-family: var(--font-mono); font-size: 0.48rem; letter-spacing: 1.4px; color: var(--orb-color); font-weight: 800; }
+
+    .core-btn.listening { transform: scale(1.08); border-color: var(--red); box-shadow: 0 0 46px var(--red), inset 0 0 24px var(--red); }
+    .core-btn.speaking { transform: scale(1.1); border-color: var(--green); box-shadow: 0 0 50px var(--green), inset 0 0 24px var(--green); }
+
+    @keyframes rot { to { transform: rotate(360deg); } }
+    @keyframes rotRev { to { transform: rotate(-360deg); } }
+
+    canvas#scope {
+      width: 100%; height: 42px; border-radius: 8px;
+      background: color-mix(in srgb, var(--bg) 88%, transparent); border: 1px solid var(--border);
+    }
+
+    .live-preview {
+      width: 100%; min-height: 28px; padding: 6px 10px; border-radius: 8px;
+      background: color-mix(in srgb, var(--primary) 4%, transparent); border: 1px dashed var(--border);
+      font-size: 0.78rem; color: var(--text);
+    }
+
+    .power-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+
+    .pwr-btn {
+      padding: 8px 10px; border-radius: 8px; border: 1px solid var(--primary);
+      background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary);
+      font-weight: 800; font-size: 0.74rem; letter-spacing: 0.8px; cursor: pointer; transition: 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .pwr-btn:hover { box-shadow: 0 0 16px color-mix(in srgb, var(--primary) 38%, transparent); }
+    .pwr-btn.active-mic { background: var(--red); border-color: var(--red); color: var(--bg); box-shadow: 0 0 20px color-mix(in srgb, var(--red) 60%, transparent); }
+    .pwr-btn.active-spk { background: var(--primary); border-color: var(--primary); color: var(--bg); box-shadow: 0 0 20px color-mix(in srgb, var(--primary) 55%, transparent); }
+
+    .led-tag { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+    .sub-controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; width: 100%; }
+    .mini-btn {
+      padding: 7px 6px; border-radius: 7px; border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--primary) 6%, transparent); color: var(--text);
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; transition: 0.2s;
+    }
+    .mini-btn:hover { border-color: var(--primary); color: var(--primary); background: color-mix(in srgb, var(--primary) 14%, transparent); }
+
+    .console-col { display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
+
+    .feed {
+      flex: 1; min-height: 170px; max-height: 40dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 7px;
+      padding: 7px; border-radius: 9px;
+      background: color-mix(in srgb, var(--bg) 65%, transparent); border: 1px solid var(--border);
+    }
+
+    .bubble { padding: 8px 11px; border-radius: 10px; font-size: 0.82rem; line-height: 1.45; max-width: 95%; white-space: pre-line; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16); }
+    .bubble.ai { background: color-mix(in srgb, var(--primary) 12%, var(--panel)); border: 1px solid var(--border); border-left: 3px solid var(--primary); align-self: flex-start; }
+    .bubble.user { background: color-mix(in srgb, var(--secondary) 18%, var(--panel)); border: 1px solid var(--border); border-right: 3px solid var(--secondary); align-self: flex-end; }
+
+    .who { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 0.63rem; color: var(--primary); margin-bottom: 3px; letter-spacing: 0.7px; }
+    .topic-pill { font-size: 0.58rem; padding: 1px 6px; border-radius: 999px; color: var(--primary); background: color-mix(in srgb, var(--primary) 14%, transparent); border: 1px solid var(--border); }
+
+    .bottom-type-deck {
+      background: color-mix(in srgb, var(--bg) 88%, var(--panel)); border: 1px solid var(--border);
+      border-left: 3px solid var(--primary); border-radius: 9px; padding: 7px 10px; display: flex; flex-direction: column; gap: 3px;
+    }
+
+    .type-meta { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.63rem; font-weight: 700; letter-spacing: 1px; color: var(--primary); }
+    .type-stream { font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.35; color: var(--text); min-height: 24px; max-height: 44px; overflow-y: auto; word-break: break-word; }
+
+    .type-cursor {
+      display: inline-block; width: 7px; height: 12px; background: var(--primary);
+      box-shadow: 0 0 8px var(--primary); vertical-align: middle; margin-left: 2px; animation: cursorBlink 0.7s infinite;
+    }
+    @keyframes cursorBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+    .cmd-form { display: flex; gap: 6px; }
+    .cmd-input {
+      flex: 1; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 90%, var(--panel)); color: var(--text); font-size: 0.84rem; outline: none;
+    }
+    .send-btn {
+      padding: 9px 14px; border-radius: 8px; border: 1px solid var(--primary);
+      background: color-mix(in srgb, var(--primary) 16%, transparent); color: var(--primary);
+      font-weight: 700; font-size: 0.76rem; letter-spacing: 1px; cursor: pointer;
+    }
+    .send-btn:hover { background: var(--primary); color: var(--bg); }
+
+    .alert-strip {
+      display: none; padding: 7px 10px; border-radius: 8px;
+      background: rgba(255, 183, 3, 0.14); border: 1px solid rgba(255, 183, 3, 0.45);
+      color: #ffd166; font-size: 0.73rem; line-height: 1.3;
+    }
+  </style>
+</head>
+<body class="mode-jarvis emote-focus">
+  <div id="clickFxLayer"></div>
+
+  <div class="modal-overlay" id="settingsOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <span>SYSTEM SETTINGS // CORE CONFIG</span>
+        <button class="close-btn" id="closeSettingsBtn">CLOSE</button>
+      </div>
+
+      <div class="set-group">
+        <div class="set-title">01 // PRO, SPECIAL &amp; Multi Modes (Robotic Face + Color Sync)</div>
+        <div class="theme-pills" id="proSubModePills">
+          <button class="theme-pill active-mode" data-prosub="pro">01 PRO MODE</button>
+          <button class="theme-pill" data-prosub="special">02 SPECIAL MODE</button>
+          <button class="theme-pill" data-prosub="sharma">03 SHARMA</button>
+          <button class="theme-pill" data-prosub="masti">04 MASTI</button>
+          <button class="theme-pill" data-prosub="mazak">05 MAZAK</button>
+          <button class="theme-pill" data-prosub="gussa">06 GUSSA</button>
+          <button class="theme-pill" data-prosub="sad">07 DUKHI / SAD</button>
+          <button class="theme-pill" data-prosub="fun">08 FUN</button>
+          <button class="theme-pill" data-prosub="stealth">09 STEALTH</button>
+          <button class="theme-pill" data-prosub="hyper">10 HYPER</button>
+        </div>
+      </div>
+
+      <div class="set-group">
+        <div class="set-title">02 // Animated Interior Modes (1, 2 &amp; 4)</div>
+        <div class="preset-grid" id="presetGrid">
+          <button class="preset-btn selected" data-preset="jarvis">
+            01 // JARVIS PULSE
+            <span>Animated Grid + Male Clear Voice</span>
+          </button>
+          <button class="preset-btn" data-preset="ladka">
+            02 // LADKA VANGUARD
+            <span>Animated Wave + Male Clear Voice</span>
+          </button>
+          <button class="preset-btn" data-preset="titan">
+            04 // TITAN SCANLINE
+            <span>Animated B&amp;W + Deep Male Voice</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="set-group">
+        <div class="set-title">03 // Male Voice + 5 Voice Profiles &amp; Voice Changer</div>
+        <div class="theme-pills" id="voiceProfilePills">
+          <button class="theme-pill active-mode" data-vprofile="male-pro">01 MALE PRO VOICE (DEFAULT)</button>
+          <button class="theme-pill" data-vprofile="titan-deep">02 MALE DEEP / LADKA</button>
+          <button class="theme-pill" data-vprofile="ladki-aura">03 LADKI / FEM VOICE</button>
+          <button class="theme-pill" data-vprofile="hyper-swift">04 MALE SWIFT</button>
+          <button class="theme-pill" data-vprofile="nova-bright">05 CLEAR BRIGHT</button>
+        </div>
+
+        <label style="font-size:0.78rem; color:var(--dim); margin-top:4px;">System Voice Engine (Locked until changed):</label>
+        <select id="voiceSelect">
+          <option value="">Auto Best Male/Clear Voice (Locked)</option>
+        </select>
+
+        <div class="set-row">
+          <span>Clear Word Pronunciation &amp; Anti-Cut Pacing</span>
+          <input type="checkbox" id="clarityPolishToggle" checked />
+        </div>
+
+        <div class="set-row">
+          <span>Speed: <strong id="rateVal">0.95x</strong></span>
+          <input type="range" id="rateSlider" min="0.82" max="1.20" step="0.02" value="0.95" style="width:60%;" />
+        </div>
+        <div class="set-row">
+          <span>Pitch: <strong id="pitchVal">0.92</strong></span>
+          <input type="range" id="pitchSlider" min="0.80" max="1.20" step="0.02" value="0.92" style="width:60%;" />
+        </div>
+      </div>
+
+      <div class="set-group">
+        <div class="set-title">04 // 5 Tap Animation Modes &amp; 5 Tap Sound Modes</div>
+        <label style="font-size:0.78rem; color:var(--dim);">5 Tap Animation Modes:</label>
+        <div class="theme-pills" id="tapAnimModePills">
+          <button class="theme-pill active-mode" data-tanim="dot-ray">01 NOVA DOT</button>
+          <button class="theme-pill" data-tanim="hex-sm">02 HEX MICRO</button>
+          <button class="theme-pill" data-tanim="ring-sm">03 RING MINI</button>
+          <button class="theme-pill" data-tanim="shard-sm">04 SHARD TINY</button>
+          <button class="theme-pill" data-tanim="pip-sm">05 WAVE PIP</button>
+        </div>
+
+        <label style="font-size:0.78rem; color:var(--dim); margin-top:4px;">5 Tap Sound Modes:</label>
+        <div class="theme-pills" id="tapSoundModePills">
+          <button class="theme-pill active-mode" data-tsound="tick-ping">01 TICK PING</button>
+          <button class="theme-pill" data-tsound="chirp-mini">02 CHIRP MINI</button>
+          <button class="theme-pill" data-tsound="harmonic-pip">03 HARMONIC PIP</button>
+          <button class="theme-pill" data-tsound="sonar-beep">04 SONAR BEEP</button>
+          <button class="theme-pill" data-tsound="synth-click">05 SYNTH CLICK</button>
+        </div>
+      </div>
+
+      <div class="set-group">
+        <div class="set-title">05 // 5 Emote Modes &amp; 5 Emote Sounds</div>
+        <label style="font-size:0.78rem; color:var(--dim);">5 Emote Modes:</label>
+        <div class="theme-pills" id="emoteModePills">
+          <button class="theme-pill active-mode" data-emode="focus">01 FOCUS</button>
+          <button class="theme-pill" data-emode="hype">02 HYPE</button>
+          <button class="theme-pill" data-emode="chill">03 CHILL</button>
+          <button class="theme-pill" data-emode="stealth">04 STEALTH</button>
+          <button class="theme-pill" data-emode="aura">05 AURA</button>
+        </div>
+
+        <label style="font-size:0.78rem; color:var(--dim); margin-top:4px;">5 Emote Sounds:</label>
+        <div class="theme-pills" id="emoteSoundPills">
+          <button class="theme-pill active-mode" data-esound="lock-on">01 LOCK-ON</button>
+          <button class="theme-pill" data-esound="turbo-rise">02 TURBO RISE</button>
+          <button class="theme-pill" data-esound="soft-drop">03 SOFT DROP</button>
+          <button class="theme-pill" data-esound="ghost-pulse">04 GHOST PULSE</button>
+          <button class="theme-pill" data-esound="star-chord">05 STAR CHORD</button>
+        </div>
+      </div>
+
+      <div class="set-group">
+        <div class="set-title">06 // Pro Mode, Instant Memory &amp; Language</div>
+        <div class="set-row">
+          <span>PRO MODE (Default ON)</span>
+          <input type="checkbox" id="proModeToggle" checked />
+        </div>
+        <div class="set-row">
+          <span>Auto-Train Memory on Every API Answer</span>
+          <input type="checkbox" id="autoSaveMemToggle" checked />
+        </div>
+        <div class="set-row">
+          <span>Emotion / Feeling Mirroring Tone</span>
+          <input type="checkbox" id="feelingMirrorToggle" checked />
+        </div>
+
+        <select id="langSelect">
+          <option value="roman-hi" selected>Roman Hindi (Hinglish - Default)</option>
+          <option value="hi-IN">Shuddh Hindi (Devanagari)</option>
+          <option value="en-IN">English (Indian / Global)</option>
+          <option value="ur-IN">Urdu / Hindustani</option>
+        </select>
+
+        <div class="set-row" style="margin-top:6px;">
+          <span>Tap Sound &amp; Emote SFX</span>
+          <input type="checkbox" id="sfxToggle" checked />
+        </div>
+        <div class="set-row">
+          <span>Always-On Live Mic Loop</span>
+          <input type="checkbox" id="autoLoopToggle" checked />
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:4px;">
+          <button class="mini-btn" id="clearCacheBtn" style="border-color:var(--primary); color:var(--primary);">
+            WIPE TRAINED MEMORY (<span id="cacheCount">0</span>)
+          </button>
+          <button class="mini-btn" id="clearChatBtn" style="border-color:var(--red); color:var(--red);">
+            CLEAR CONSOLE
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud-wrap">
+    <header class="topbar">
+      <div class="brand">
+        <span class="pulse-led"></span>
+        <span>DRAGON AI // BUILT BY SAAN</span>
+      </div>
+      <div class="top-actions">
+        <button class="hud-btn pro-active" id="quickProBtn" title="Toggle PRO MODE">PRO: ON</button>
+        <span class="shield-pill" id="proTonePill">MODE: PRO</span>
+        <span class="shield-pill" id="memPill">MEM: 0</span>
+        <span class="shield-pill" id="tamperBadge">MODE-01 // JARVIS</span>
+        <span class="clock" id="clock">04:00:00</span>
+        <button class="hud-btn" id="openSettingsBtn">SETTINGS</button>
+      </div>
+    </header>
+
+    <div class="pro-subbar">
+      <span class="pro-subbar-label">MODES //</span>
+      <div class="pro-mode-pills" id="quickProSubPills">
+        <button class="pro-chip active-pro-sub" data-prosub="pro">01 PRO</button>
+        <button class="pro-chip" data-prosub="special">02 SPECIAL</button>
+        <button class="pro-chip" data-prosub="sharma">03 SHARMA</button>
+        <button class="pro-chip" data-prosub="masti">04 MASTI</button>
+        <button class="pro-chip" data-prosub="mazak">05 MAZAK</button>
+        <button class="pro-chip" data-prosub="gussa">06 GUSSA</button>
+        <button class="pro-chip" data-prosub="sad">07 DUKHI</button>
+        <button class="pro-chip" data-prosub="fun">08 FUN</button>
+        <button class="pro-chip" data-prosub="stealth">09 STEALTH</button>
+        <button class="pro-chip" data-prosub="hyper">10 HYPER</button>
+      </div>
+    </div>
+
+    <div class="grid-main">
+      <section class="card reactor-box">
+        <div class="card-head" style="width:100%;">
+          <span>NEURAL CORE // PRO-SYNC</span>
+          <span id="activeConfigTag">JARVIS // MALE-PRO // PRO</span>
+        </div>
+
+        <div class="state-badge" id="stateBadge">MODE // PRO</div>
+
+        <div class="core-ring-wrap">
+          <div class="arc arc-1"></div>
+          <div class="arc arc-2"></div>
+          <div class="arc arc-3"></div>
+          <div class="orbit-dot"></div>
+          <button class="core-btn" id="coreOrbBtn" data-circle-mode="pro" title="Tap to Speak">
+            <span class="core-sub">PRO-BOT // SAAN-V12</span>
+            <div class="robo-face" id="roboFace">
+              <div class="robo-crest"></div>
+              <div class="robo-brow-row">
+                <span class="robo-brow left"></span>
+                <span class="robo-brow right"></span>
+              </div>
+              <div class="robo-eyes-row">
+                <span class="robo-cheek"></span>
+                <span class="robo-eye left" id="roboEyeLeft"><span class="robo-iris" id="roboIrisLeft"></span></span>
+                <span class="robo-eye right" id="roboEyeRight"><span class="robo-iris" id="roboIrisRight"></span></span>
+                <span class="robo-cheek"></span>
+              </div>
+              <div class="robo-mouth-zone">
+                <span class="robo-visor-mouth" id="roboMouth"></span>
+              </div>
+            </div>
+            <span class="core-tag" id="circleModeLabel">PRO</span>
+          </button>
+        </div>
+
+        <canvas id="scope" width="520" height="42"></canvas>
+
+        <div class="live-preview" id="liveInterim">
+          Mic input yahan live dikhega...
+        </div>
+
+        <div class="power-grid">
+          <button class="pwr-btn" id="liveMicBtn"><span class="led-tag"></span> LIVE MIC: OFF</button>
+          <button class="pwr-btn active-spk" id="speakerPowerBtn"><span class="led-tag"></span> SPEAKER: ON</button>
+        </div>
+
+        <div class="sub-controls">
+          <button class="mini-btn" id="pushTalkBtn">HOLD TO TALK</button>
+          <button class="mini-btn" id="testSpkBtn">TEST VOICE</button>
+          <button class="mini-btn" id="replayBtn">REPLAY</button>
+          <button class="mini-btn" id="stopSpkBtn">STOP</button>
+        </div>
+
+        <div class="alert-strip" id="alertStrip"></div>
+      </section>
+
+      <section class="card console-col">
+        <div>
+          <div class="card-head">
+            <span>NEURAL REASONING CONSOLE</span>
+            <span id="consoleLangLabel">ROMAN-HI // PRO</span>
+          </div>
+
+          <div class="feed" id="feed">
+            <div class="bubble ai">
+              <span class="who">
+                <span>DRAGON CORE</span>
+                <span class="topic-pill">PRO FACE // VOICE FIXED</span>
+              </span>
+              Dragon AI PRO v12.2 ready hai. Portrait fit aur chat scroll update active hain. Boliye, kya karna hai?
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-type-deck">
+          <div class="type-meta">
+            <span id="typingStatus">STREAM // PRO READY</span>
+            <span id="typingCharCount">0 CHARS</span>
+          </div>
+          <div class="type-stream">
+            <span id="bottomTypingText">Awaiting input stream...</span><span class="type-cursor" id="typeCursor"></span>
+          </div>
+        </div>
+
+        <form class="cmd-form" id="cmdForm">
+          <input
+            type="text"
+            class="cmd-input"
+            id="cmdInput"
+            placeholder="Kuch bhi poochho ya bolo..."
+            autocomplete="off"
+          />
+          <button type="submit" class="send-btn">SEND</button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    const VAULT_STORAGE_KEY = "dragon_hud_vault_k9_v3";
+    const MEMORY_STORAGE_KEY = "dragon_hud_mem_m7_v3";
+    const NAME_STORAGE_KEY = "dragon_hud_id_n4_v3";
+    const MODEL_CACHE_KEY = "dragon_hud_live_model_v10";
+    const PREFS_STORAGE_KEY = "dragon_hud_prefs_p12";
+
+    const VAULT_SALT = "SAAN_DRAGON_V8_VAULT_SALT#91";
+    const MEM_SALT = "SAAN_DRAGON_V8_MEM_SALT#47";
+
+    const clickFxLayer = document.getElementById("clickFxLayer");
+    const settingsOverlay = document.getElementById("settingsOverlay");
+    const openSettingsBtn = document.getElementById("openSettingsBtn");
+    const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+    const quickProBtn = document.getElementById("quickProBtn");
+    const proTonePill = document.getElementById("proTonePill");
+    const proSubModePills = document.getElementById("proSubModePills");
+    const quickProSubPills = document.getElementById("quickProSubPills");
+    const proModeToggle = document.getElementById("proModeToggle");
+    const autoSaveMemToggle = document.getElementById("autoSaveMemToggle");
+    const memPill = document.getElementById("memPill");
+
+    const presetGrid = document.getElementById("presetGrid");
+    const voiceProfilePills = document.getElementById("voiceProfilePills");
+    const voiceSelect = document.getElementById("voiceSelect");
+    const clarityPolishToggle = document.getElementById("clarityPolishToggle");
+    const feelingMirrorToggle = document.getElementById("feelingMirrorToggle");
+    const rateSlider = document.getElementById("rateSlider");
+    const pitchSlider = document.getElementById("pitchSlider");
+    const rateVal = document.getElementById("rateVal");
+    const pitchVal = document.getElementById("pitchVal");
+    const langSelect = document.getElementById("langSelect");
+    const tapAnimModePills = document.getElementById("tapAnimModePills");
+    const tapSoundModePills = document.getElementById("tapSoundModePills");
+    const emoteModePills = document.getElementById("emoteModePills");
+    const emoteSoundPills = document.getElementById("emoteSoundPills");
+    const sfxToggle = document.getElementById("sfxToggle");
+    const autoLoopToggle = document.getElementById("autoLoopToggle");
+    const clearChatBtn = document.getElementById("clearChatBtn");
+    const clearCacheBtn = document.getElementById("clearCacheBtn");
+    const cacheCountEl = document.getElementById("cacheCount");
+
+    const tamperBadge = document.getElementById("tamperBadge");
+    const activeConfigTag = document.getElementById("activeConfigTag");
+    const consoleLangLabel = document.getElementById("consoleLangLabel");
+
+    const clockEl = document.getElementById("clock");
+    const stateBadge = document.getElementById("stateBadge");
+    const coreOrbBtn = document.getElementById("coreOrbBtn");
+    const circleModeLabel = document.getElementById("circleModeLabel");
+    const roboEyeLeft = document.getElementById("roboEyeLeft");
+    const roboEyeRight = document.getElementById("roboEyeRight");
+    const roboIrisLeft = document.getElementById("roboIrisLeft");
+    const roboIrisRight = document.getElementById("roboIrisRight");
+    const liveMicBtn = document.getElementById("liveMicBtn");
+    const pushTalkBtn = document.getElementById("pushTalkBtn");
+    const speakerPowerBtn = document.getElementById("speakerPowerBtn");
+    const testSpkBtn = document.getElementById("testSpkBtn");
+    const replayBtn = document.getElementById("replayBtn");
+    const stopSpkBtn = document.getElementById("stopSpkBtn");
+    const liveInterim = document.getElementById("liveInterim");
+    const alertStrip = document.getElementById("alertStrip");
+    const feed = document.getElementById("feed");
+    const bottomTypingText = document.getElementById("bottomTypingText");
+    const typingStatus = document.getElementById("typingStatus");
+    const typingCharCount = document.getElementById("typingCharCount");
+    const cmdForm = document.getElementById("cmdForm");
+    const cmdInput = document.getElementById("cmdInput");
+    const canvas = document.getElementById("scope");
+    const ctx = canvas.getContext("2d");
+
+    let speakerOn = true;
+    let continuousMic = false;
+    let isListening = false;
+    let isSpeaking = false;
+    let isTypingStream = false;
+    let isProcessingReply = false;
+    let typingTimer = null;
+    let micRestartTimer = null;
+    let speechQueueToken = 0;
+    let speechResumeInterval = null;
+
+    let isProMode = true;
+    let currentProSubMode = "pro";
+    let currentPreset = "jarvis";
+    let currentVoiceProfile = "male-pro";
+    let userLockedVoiceURI = "";
+    let userLockedRate = 0.95;
+    let userLockedPitch = 0.92;
+
+    let currentTapAnimMode = "dot-ray";
+    let currentTapSoundMode = "tick-ping";
+    let currentEmoteMode = "focus";
+    let currentEmoteSound = "lock-on";
+    let currentFeeling = "NEUTRAL";
+    let tapPulseBoost = 0;
+
+    let currentLang = "roman-hi";
+    let lastAiReply = "Dragon AI PRO online hai.";
+    let lastProcessedInput = "";
+    let lastProcessedAt = 0;
+    let voices = [];
+    let audioCtx = null;
+    let tamperDetected = false;
+    let ownerReplyIndex = 0;
+    let discoveredModelQueue = [];
+    const conversationMemory = [];
+    let inMemorySessionCache = {};
+
+    const PRO_SUB_MODES = Object.freeze({
+      pro: { label: "PRO", emote: "focus", prompt: "PRO MODE: Fast, sharp, high-accuracy technical & direct answer. Crisp and complete." },
+      special: { label: "SPECIAL", emote: "aura", prompt: "SPECIAL MODE: Unique, structured, high-value special insight with crisp points." },
+      sharma: { label: "SHARMA", emote: "focus", prompt: "SHARMA MODE: Sharp, crisp, kaam ki baat seedha aur saaf. Bina faltu kachre ke exact point do." },
+      masti: { label: "MASTI", emote: "hype", prompt: "MASTI MODE: Full energetic, bindass, dostana aur swag bhare andaz mein baat karo, saath mein kaam ka point bhi rakho." },
+      mazak: { label: "MAZAK", emote: "aura", prompt: "MAZAK MODE: Halka-phulka witty, teasing aur mazedaar mazaak ke andaz mein jawab do—smart aur punchy." },
+      gussa: { label: "GUSSA", emote: "stealth", prompt: "GUSSA MODE: Tez, sakht, no-nonsense aur kadak attitude mein baat karo—seedha point aur kadak jawab." },
+      sad: { label: "SAD", emote: "chill", prompt: "SAD / DUKHI MODE: Calm, empathetic, supportive aur shaant andaz mein baat karo." },
+      fun: { label: "FUN", emote: "chill", prompt: "FUN MODE: Has-mukh, creative, fun vibes ke saath dilchasp aur poora jawab do." },
+      stealth: { label: "STEALTH", emote: "stealth", prompt: "STEALTH MODE: Quiet, tactical, minimal words, razor-focused output." },
+      hyper: { label: "HYPER", emote: "hype", prompt: "HYPER MODE: High-speed, punchy, rapid-fire clear points." }
+    });
+
+    const VOICE_PROFILES = Object.freeze({
+      "male-pro":    { label: "MALE-PRO",  rate: 0.95, pitch: 0.92, genderHint: "male" },
+      "titan-deep":  { label: "MALE-DEEP", rate: 0.93, pitch: 0.84, genderHint: "male" },
+      "ladki-aura":  { label: "LADKI",     rate: 0.98, pitch: 1.10, genderHint: "female" },
+      "hyper-swift": { label: "MALE-FAST", rate: 1.03, pitch: 0.95, genderHint: "male" },
+      "nova-bright": { label: "CLEAR",     rate: 0.96, pitch: 1.02, genderHint: "any" }
+    });
+
+    const VOICE_PRESETS = Object.freeze({
+      jarvis: Object.freeze({ code: "01", label: "JARVIS PULSE",   modeClass: "mode-jarvis", vprofile: "male-pro" }),
+      ladka:  Object.freeze({ code: "02", label: "LADKA VANGUARD", modeClass: "mode-ladka",  vprofile: "male-pro" }),
+      titan:  Object.freeze({ code: "04", label: "TITAN SCANLINE", modeClass: "mode-titan",  vprofile: "titan-deep" })
+    });
+
+    const EMOTE_MODES = Object.freeze({
+      focus:   { label: "FOCUS",   cls: "emote-focus" },
+      hype:    { label: "HYPE",    cls: "emote-hype" },
+      chill:   { label: "CHILL",   cls: "emote-chill" },
+      stealth: { label: "STEALTH", cls: "emote-stealth" },
+      aura:    { label: "AURA",    cls: "emote-aura" }
+    });
+
+    let roboEyeX = 0;
+    let roboEyeY = 0;
+    let targetRoboEyeX = 0;
+    let targetRoboEyeY = 0;
+
+    function triggerFaceTapReaction() {
+      if (!coreOrbBtn) return;
+      coreOrbBtn.classList.remove("tap-react");
+      void coreOrbBtn.offsetWidth;
+      coreOrbBtn.classList.add("tap-react");
+      targetRoboEyeX = (Math.random() - 0.5) * 9;
+      targetRoboEyeY = -1.6;
+      setTimeout(() => {
+        coreOrbBtn.classList.remove("tap-react");
+      }, 360);
+    }
+
+    function setRoboIrisOffset(rx, ry) {
+      const x = Math.max(-5.5, Math.min(5.5, rx));
+      const y = Math.max(-3.0, Math.min(3.0, ry));
+      if (roboIrisLeft) {
+        roboIrisLeft.style.setProperty("--rx", `${x.toFixed(1)}px`);
+        roboIrisLeft.style.setProperty("--ry", `${y.toFixed(1)}px`);
+      }
+      if (roboIrisRight) {
+        roboIrisRight.style.setProperty("--rx", `${x.toFixed(1)}px`);
+        roboIrisRight.style.setProperty("--ry", `${y.toFixed(1)}px`);
+      }
+    }
+
+    setInterval(() => {
+      if (currentProSubMode === "sad") {
+        targetRoboEyeX = (Math.random() - 0.5) * 2.5;
+        targetRoboEyeY = 2.0;
+      } else if (currentProSubMode === "gussa") {
+        targetRoboEyeX = (Math.random() - 0.5) * 4.5;
+        targetRoboEyeY = 0.2;
+      } else if (currentProSubMode === "masti" || currentProSubMode === "fun" || currentProSubMode === "mazak") {
+        targetRoboEyeX = (Math.random() - 0.5) * 8.5;
+        targetRoboEyeY = (Math.random() - 0.5) * 2.8;
+      } else {
+        targetRoboEyeX = (Math.random() - 0.5) * 7.5;
+        targetRoboEyeY = (Math.random() - 0.5) * 2.2;
+      }
+    }, 620);
+
+    setInterval(() => {
+      if (!roboEyeLeft || !roboEyeRight) return;
+      roboEyeLeft.classList.add("blink");
+      roboEyeRight.classList.add("blink");
+      setTimeout(() => {
+        roboEyeLeft.classList.remove("blink");
+        roboEyeRight.classList.remove("blink");
+      }, 130);
+    }, 3100);
+
+    function stepRoboEyes() {
+      roboEyeX += (targetRoboEyeX - roboEyeX) * 0.24;
+      roboEyeY += (targetRoboEyeY - roboEyeY) * 0.24;
+      setRoboIrisOffset(roboEyeX, roboEyeY);
+      requestAnimationFrame(stepRoboEyes);
+    }
+    stepRoboEyes();
+
+    function loadUserPrefs() {
+      try {
+        const raw = localStorage.getItem(PREFS_STORAGE_KEY);
+        if (!raw) return;
+        const p = JSON.parse(raw);
+        if (typeof p.isProMode === "boolean") isProMode = p.isProMode;
+        if (p.proSubMode && PRO_SUB_MODES[p.proSubMode]) currentProSubMode = p.proSubMode;
+        if (p.preset && VOICE_PRESETS[p.preset]) currentPreset = p.preset;
+        if (p.vprofile && VOICE_PROFILES[p.vprofile]) currentVoiceProfile = p.vprofile;
+        if (typeof p.voiceURI === "string") userLockedVoiceURI = p.voiceURI;
+        if (typeof p.rate === "number") userLockedRate = Math.min(1.15, Math.max(0.82, p.rate));
+        if (typeof p.pitch === "number") userLockedPitch = Math.min(1.15, Math.max(0.80, p.pitch));
+        if (p.lang) currentLang = p.lang;
+      } catch (e) {}
+    }
+
+    function saveUserPrefs() {
+      try {
+        localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({
+          isProMode,
+          proSubMode: currentProSubMode,
+          preset: currentPreset,
+          vprofile: currentVoiceProfile,
+          voiceURI: userLockedVoiceURI,
+          rate: userLockedRate,
+          pitch: userLockedPitch,
+          lang: currentLang
+        }));
+      } catch (e) {}
+    }
+
+    function applyProSubMode(subKey) {
+      if (!PRO_SUB_MODES[subKey]) return;
+      currentProSubMode = subKey;
+      const cfg = PRO_SUB_MODES[subKey];
+
+      if (proSubModePills) {
+        proSubModePills.querySelectorAll(".theme-pill").forEach((b) => {
+          b.classList.toggle("active-mode", b.dataset.prosub === subKey);
+        });
+      }
+      if (quickProSubPills) {
+        quickProSubPills.querySelectorAll(".pro-chip").forEach((b) => {
+          b.classList.toggle("active-pro-sub", b.dataset.prosub === subKey);
+        });
+      }
+      if (proTonePill) {
+        proTonePill.textContent = `MODE: ${cfg.label}`;
+      }
+      if (coreOrbBtn) {
+        coreOrbBtn.setAttribute("data-circle-mode", subKey);
+      }
+      if (circleModeLabel) {
+        circleModeLabel.textContent = cfg.label;
+      }
+
+      triggerFaceTapReaction();
+      saveUserPrefs();
+      updateConfigHeader();
+      if (!isListening && !isSpeaking) {
+        stateBadge.textContent = `MODE // ${cfg.label}`;
+      }
+    }
+
+    function syncProModeUI() {
+      if (proModeToggle) proModeToggle.checked = isProMode;
+      if (quickProBtn) {
+        quickProBtn.textContent = isProMode ? "PRO: ON" : "PRO: OFF";
+        quickProBtn.classList.toggle("pro-active", isProMode);
+      }
+      updateConfigHeader();
+      if (!isListening && !isSpeaking) {
+        stateBadge.textContent = `MODE // ${PRO_SUB_MODES[currentProSubMode].label}`;
+      }
+    }
+
+    if (quickProBtn) {
+      quickProBtn.addEventListener("click", () => {
+        isProMode = !isProMode;
+        saveUserPrefs();
+        syncProModeUI();
+      });
+    }
+    if (proModeToggle) {
+      proModeToggle.addEventListener("change", () => {
+        isProMode = !!proModeToggle.checked;
+        saveUserPrefs();
+        syncProModeUI();
+      });
+    }
+
+    function handleProSubClick(e) {
+      const target = e.target.closest("[data-prosub]");
+      if (!target) return;
+      applyProSubMode(target.dataset.prosub);
+      playEmoteSound(currentEmoteSound);
+    }
+    if (proSubModePills) proSubModePills.addEventListener("click", handleProSubClick);
+    if (quickProSubPills) quickProSubPills.addEventListener("click", handleProSubClick);
+
+    function detectUserFeeling(text) {
+      const t = String(text || "").toLowerCase();
+      if (/(dukhi|sad|udaas|bura lag|rona|thak|akela|tension|pareshan|heartbreak|उदास|दुखी|परेशान|अकेला|थक)/.test(t)) return "SAD";
+      if (/(gussa|angry|irritated|bakwas|pagal|frustrate|chidh|गुस्सा|चिढ़|बकवास)/.test(t)) return "ANGRY";
+      if (/(mast|zabardast|khatarnak|badiya|badhiya|maza|excited|hype|swag|fire|जबरदस्त|मस्त|बढ़िया|खतरनाक)/.test(t)) return "HYPE";
+      if (/(kyun|kaise|kya hota|samjhao|batao na|why|how|explain|कैसे|क्यों|समझाओ|बताओ)/.test(t)) return "CURIOUS";
+      if (/(chill|relax|shaanti|cool|normal|theek|thik|ठीक|कूल|शांत)/.test(t)) return "CHILL";
+      return "NEUTRAL";
+    }
+
+    function applyFeelingAutoSync(feeling) {
+      currentFeeling = feeling;
+      if (feelingMirrorToggle && feelingMirrorToggle.checked) {
+        if (feeling === "SAD" && currentProSubMode !== "sad") {
+          applyProSubMode("sad");
+        } else if (feeling === "ANGRY" && currentProSubMode !== "gussa") {
+          applyProSubMode("gussa");
+        }
+      }
+    }
+
+    function buildProSubModeLocalReply(userText, feeling) {
+      const clean = userText.trim();
+      const mode = currentProSubMode;
+
+      if (mode === "special") {
+        return currentLang === "hi-IN"
+          ? `स्पेशल इनसाइट: "${clean}" — मुख्य बात यह है कि सही फोकस और साफ कदम से कम समय में बेहतर नतीजा मिलता है।`
+          : `Special insight: "${clean}" — focus aur clear step se kam waqt mein behtar result aata hai.`;
+      }
+      if (mode === "masti") {
+        return currentLang === "hi-IN"
+          ? `फुल मस्ती मोड ऑन! "${clean}" — मस्ती अपनी जगह, सीधा पॉइंट यह है कि काम पूरा करके ही रुकेंगे।`
+          : `Full masti mode on! "${clean}" — masti apni jagah, seedha point yeh hai ki kaam poora karke hi rukenge.`;
+      }
+      if (mode === "mazak") {
+        return currentLang === "hi-IN"
+          ? `"${clean}"? कहीं सिस्टम ओवरक्लॉक तो नहीं कर लिया? मज़ाक अपनी जगह, सीधा जवाब यह है कि आगे का कदम तैयार है।`
+          : `"${clean}"? Kahin system overclock toh nahi kar liya? Mazak apni jagah, seedhi baat yeh hai ki aage ka step ready hai.`;
+      }
+      if (mode === "gussa") {
+        return currentLang === "hi-IN"
+          ? `"${clean}" पर टाइम खराब मत कर। सीधा मुद्दा बोल और अगला कदम उठा।`
+          : `"${clean}" par time mat ganwa. Seedha point bol aur agla step le.`;
+      }
+      if (mode === "sad") {
+        return currentLang === "hi-IN"
+          ? `"${clean}" — कोई बात नहीं, मैं यहाँ हूँ। थोड़ा सांस लो, क्या दिक्कत है बताओ हम मिलकर संभाल लेंगे।`
+          : `"${clean}" — koi baat nahi, main yahan hoon. Thoda relax karo, kya hua hai batao hum dekh lenge.`;
+      }
+      if (mode === "fun") {
+        return currentLang === "hi-IN"
+          ? `मज़ेदार फ़न मोड! "${clean}" — एक छोटी सी चिंगारी से बड़ा कमाल शुरू होता है। बताओ आगे क्या चलाना है?`
+          : `Badiya fun mode! "${clean}" — ek chhoti spark se bada kaam shuru hota hai. Bata aage kya chalana hai?`;
+      }
+      if (mode === "stealth") {
+        return `Stealth mode: "${clean}" noted. Minimal output ready.`;
+      }
+      if (mode === "hyper") {
+        return `Hyper mode active: "${clean}" — fast execution ready.`;
+      }
+
+      if (feeling === "SAD") return `"${clean}" se mann bhaari hai. Seedha bata kya atka hai, hal nikalte hain.`;
+      if (feeling === "ANGRY") return `"${clean}" par gussa high hai. Seedha main issue bol, turant solution dekhte hain.`;
+      if (feeling === "HYPE") return `Full energy! "${clean}" — agla step kya hai, seedha bol.`;
+      return null;
+    }
+
+    function syncBodyClasses() {
+      const mCls = VOICE_PRESETS[currentPreset]?.modeClass || "mode-jarvis";
+      const eCls = EMOTE_MODES[currentEmoteMode]?.cls || "emote-focus";
+      document.body.className = `${mCls} ${eCls}`;
+    }
+
+    function scoreVoiceClarity(voice, preferMale = true) {
+      const hay = `${voice.name} ${voice.voiceURI} ${voice.lang}`.toLowerCase();
+      let score = 0;
+
+      const femaleTokens = ["female", "woman", "girl", "aditi", "heera", "lekha", "neerja", "priya", "shreya", "samantha", "victoria", "zira", "hazel", "susan", "karen", "moira", "tessa", "veena", "ava", "allison"];
+      const maleTokens = ["male", "man", "boy", "rishi", "prabhat", "daniel", "david", "mark", "arthur", "alex", "fred", "jorge", "ravi", "rahul", "aarav", "amit", "vivek"];
+
+      const isFemale = femaleTokens.some((w) => hay.includes(w));
+      const isMale = maleTokens.some((w) => hay.includes(w));
+
+      if (preferMale) {
+        if (isMale) score += 95;
+        if (isFemale) score -= 120;
+      }
+
+      if (hay.includes("google")) score += 60;
+      if (hay.includes("natural") || hay.includes("neural") || hay.includes("online") || hay.includes("enhanced") || hay.includes("wavenet")) score += 50;
+      if (hay.includes("hi-in") || hay.includes("hi_in")) score += 35;
+      if (hay.includes("en-in") || hay.includes("en_in")) score += 25;
+      if (hay.includes("espeak") || hay.includes("festival") || hay.includes("robot") || hay.includes("compact")) score -= 90;
+      if (voice.localService) score += 12;
+      return score;
+    }
+
+    function findBestVoice(list, genderHint = "male") {
+      if (!list || !list.length) return null;
+      const femaleWords = ["female", "woman", "girl", "aditi", "heera", "lekha", "neerja", "priya", "shreya", "samantha", "victoria", "zira", "hazel", "susan", "karen", "moira", "tessa", "veena"];
+      const maleWords = ["male", "man", "boy", "rishi", "prabhat", "daniel", "david", "mark", "arthur", "alex", "fred", "jorge", "ravi", "rahul", "aarav"];
+
+      const targetLang = currentLang === "roman-hi" ? "hi" : currentLang.split("-")[0];
+      const langPool = list.filter((v) => v.lang.toLowerCase().includes(targetLang));
+      let pool = langPool.length ? langPool : list;
+
+      if (genderHint === "male" || genderHint === "female") {
+        const gPool = pool.filter((v) => {
+          const hay = `${v.name} ${v.voiceURI}`.toLowerCase();
+          return genderHint === "female"
+            ? femaleWords.some((w) => hay.includes(w)) && !maleWords.some((w) => hay.includes(w))
+            : maleWords.some((w) => hay.includes(w)) && !femaleWords.some((w) => hay.includes(w));
+        });
+        if (gPool.length) {
+          pool = gPool;
+        } else if (genderHint === "male") {
+          const nonFemale = pool.filter((v) => !femaleWords.some((w) => `${v.name} ${v.voiceURI}`.toLowerCase().includes(w)));
+          if (nonFemale.length) pool = nonFemale;
+        }
+      }
+
+      const preferMale = genderHint !== "female";
+      return [...pool].sort((a, b) => scoreVoiceClarity(b, preferMale) - scoreVoiceClarity(a, preferMale))[0];
+    }
+
+    function refreshVoiceList() {
+      if (!("speechSynthesis" in window)) return [];
+      try {
+        const loaded = window.speechSynthesis.getVoices() || [];
+        if (loaded.length) voices = loaded;
+      } catch (e) {}
+      return voices;
+    }
+
+    function resolveLockedVoice() {
+      const list = refreshVoiceList();
+      if (!list || !list.length) return null;
+      if (userLockedVoiceURI) {
+        const exact = list.find((v) => v.voiceURI === userLockedVoiceURI || v.name === userLockedVoiceURI);
+        if (exact) return exact;
+      }
+      const hint = VOICE_PROFILES[currentVoiceProfile]?.genderHint || "male";
+      return findBestVoice(list, hint) || list[0];
+    }
+
+    function applyVoiceProfile(profileKey, resetCustomLock = false) {
+      const vp = VOICE_PROFILES[profileKey];
+      if (!vp) return;
+      currentVoiceProfile = profileKey;
+
+      voiceProfilePills.querySelectorAll(".theme-pill").forEach((p) => {
+        p.classList.toggle("active-mode", p.dataset.vprofile === profileKey);
+      });
+
+      if (resetCustomLock) {
+        userLockedVoiceURI = "";
+        userLockedRate = vp.rate;
+        userLockedPitch = vp.pitch;
+      }
+
+      rateSlider.value = userLockedRate;
+      pitchSlider.value = userLockedPitch;
+      rateVal.textContent = `${Number(userLockedRate).toFixed(2)}x`;
+      pitchVal.textContent = Number(userLockedPitch).toFixed(2);
+
+      if (voiceSelect) {
+        voiceSelect.value = userLockedVoiceURI || "";
+      }
+      saveUserPrefs();
+      updateConfigHeader();
+    }
+
+    function applyNeuralMode(presetKey, resetVoice = false) {
+      if (!VOICE_PRESETS[presetKey]) return;
+      currentPreset = presetKey;
+      const p = VOICE_PRESETS[presetKey];
+
+      syncBodyClasses();
+      document.querySelectorAll(".preset-btn").forEach((b) => b.classList.toggle("selected", b.dataset.preset === presetKey));
+
+      if (resetVoice) {
+        applyVoiceProfile(p.vprofile, true);
+      } else {
+        applyVoiceProfile(currentVoiceProfile, false);
+      }
+
+      if (tamperBadge && !tamperDetected) {
+        tamperBadge.textContent = `MODE-${p.code} // ${p.label}`;
+      }
+      saveUserPrefs();
+      updateConfigHeader();
+    }
+
+    function computeChecksum(payloadStr, salt) {
+      const input = `${salt}::${payloadStr}`;
+      let h1 = 0x811c9dc5;
+      let h2 = 0x01000193;
+      for (let i = 0; i < input.length; i++) {
+        const ch = input.charCodeAt(i);
+        h1 ^= ch;
+        h1 = Math.imul(h1, 0x01000193);
+        h2 ^= (ch + i * 13);
+        h2 = Math.imul(h2, 0x85ebca6b);
+      }
+      return `${(h1 >>> 0).toString(16).padStart(8, "0")}${(h2 >>> 0).toString(16).padStart(8, "0")}`;
+    }
+
+    function xorTransform(str, salt) {
+      let out = "";
+      for (let i = 0; i < str.length; i++) {
+        const k = salt.charCodeAt(i % salt.length) ^ ((i * 31) & 0xff);
+        out += String.fromCharCode(str.charCodeAt(i) ^ (k & 0xff));
+      }
+      return out;
+    }
+
+    function encodeProtected(obj, salt) {
+      const json = JSON.stringify(obj);
+      const utf8 = unescape(encodeURIComponent(json));
+      const xored = xorTransform(utf8, salt);
+      const b64 = btoa(xored);
+      const sig = computeChecksum(b64, salt);
+      return JSON.stringify({ v: 1, d: b64, s: sig });
+    }
+
+    function decodeProtected(raw, salt, labelForTamper) {
+      if (!raw) return { ok: false, empty: true, data: null };
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed.d !== "string" || typeof parsed.s !== "string") {
+          flagTamper(labelForTamper);
+          return { ok: false, empty: false, data: null };
+        }
+        const expectedSig = computeChecksum(parsed.d, salt);
+        if (parsed.s !== expectedSig) {
+          flagTamper(labelForTamper);
+          return { ok: false, empty: false, data: null };
+        }
+        const xored = atob(parsed.d);
+        const utf8 = xorTransform(xored, salt);
+        const json = decodeURIComponent(escape(utf8));
+        return { ok: true, empty: false, data: JSON.parse(json) };
+      } catch (e) {
+        flagTamper(labelForTamper);
+        return { ok: false, empty: false, data: null };
+      }
+    }
+
+    function flagTamper(sourceLabel) {
+      tamperDetected = true;
+      showAlert(`Security Guard: ${sourceLabel} mein chedchad pakdi gayi. Corrupt data block kiya gaya hai.`);
+    }
+
+    function readVaultKey() {
+      try {
+        const raw = localStorage.getItem(VAULT_STORAGE_KEY);
+        if (!raw) return "";
+        const res = decodeProtected(raw, VAULT_SALT, "VAULT");
+        if (!res.ok) return "";
+        return typeof res.data?.k === "string" ? res.data.k.replace(/\s+/g, "").trim() : "";
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function isEphemeralOrTimeSensitive(text) {
+      const t = String(text || "").toLowerCase();
+      return /(time|samay|waqt|kitne baje|baje|aaj|kal|parso|beeta|beet gaya|past|yesterday|today|tomorrow|abhi|current|live|weather|mausam|news|khabar|ramzan|eid|festival|match|score|price|rate|bhav|दिनांक|तारीख|दिन|वार|समय|वक्त|आज|कल|परसों|बीता|मौसम|खबर|रमजान|ईद)/.test(t);
+    }
+
+    function loadMemoryMap() {
+      try {
+        const raw = localStorage.getItem(MEMORY_STORAGE_KEY);
+        if (!raw) return { ...inMemorySessionCache };
+        const res = decodeProtected(raw, MEM_SALT, "MEMORY");
+        if (!res.ok || !res.data || typeof res.data.entries !== "object") {
+          localStorage.removeItem(MEMORY_STORAGE_KEY);
+          return { ...inMemorySessionCache };
+        }
+        inMemorySessionCache = { ...res.data.entries, ...inMemorySessionCache };
+        return inMemorySessionCache;
+      } catch (e) {
+        return { ...inMemorySessionCache };
+      }
+    }
+
+    function saveMemoryMap(entriesObj) {
+      inMemorySessionCache = { ...entriesObj };
+      try {
+        const packed = encodeProtected({ entries: inMemorySessionCache, u: Date.now() }, MEM_SALT);
+        localStorage.setItem(MEMORY_STORAGE_KEY, packed);
+      } catch (e) {}
+      updateMemoryCounter();
+    }
+
+    function updateMemoryCounter() {
+      const entries = loadMemoryMap();
+      const uniqueAnswers = new Set(Object.values(entries).map((x) => x?.a).filter(Boolean));
+      const count = uniqueAnswers.size;
+      if (cacheCountEl) cacheCountEl.textContent = String(count);
+      if (memPill) memPill.textContent = `MEM: ${count}`;
+    }
+
+    function normalizeExactQuery(raw) {
+      return String(raw || "")
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}\s]+/gu, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function normalizeCorePhrase(raw) {
+      return normalizeExactQuery(raw)
+        .replace(/\b(kya|hai|hain|ho|ka|ki|ke|ko|se|mein|me|par|aur|bhi|toh|to|please|pls|batao|bataiye|samjhao|kya hota hai|kise kehte hain|what is|who is|tell me|explain|define|meaning of|ka matlab|क्या|है|हैं|बताओ|बताइए|समझाओ|किसे कहते हैं)\b/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function buildMemoryKeys(text) {
+      const exact = normalizeExactQuery(text);
+      const core = normalizeCorePhrase(text);
+      const subTag = currentProSubMode;
+      const keys = [];
+      if (exact) keys.push(`${currentLang}::${subTag}::exact::${exact}`);
+      if (core && core.length >= 2) keys.push(`${currentLang}::${subTag}::core::${core}`);
+      return [...new Set(keys)];
+    }
+
+    function getInstantMemoryReply(userText) {
+      if (isEphemeralOrTimeSensitive(userText)) return null;
+      const keys = buildMemoryKeys(userText);
+      if (!keys.length) return null;
+
+      const entries = loadMemoryMap();
+      for (const key of keys) {
+        const item = entries[key];
+        if (!item || typeof item.a !== "string") continue;
+        const expectedItemSig = computeChecksum(`${key}::${item.a}`, MEM_SALT);
+        if (item.s !== expectedItemSig) {
+          flagTamper("MEM_ENTRY");
+          delete entries[key];
+          saveMemoryMap(entries);
+          continue;
+        }
+        return item.a;
+      }
+      return null;
+    }
+
+    function feedApiAnswerToMemory(userText, replyText) {
+      if (autoSaveMemToggle && !autoSaveMemToggle.checked) return false;
+      if (isEphemeralOrTimeSensitive(userText)) return false;
+      const cleanReply = String(replyText || "").trim();
+      if (!cleanReply || cleanReply.length < 2) return false;
+
+      const keys = buildMemoryKeys(userText);
+      if (!keys.length) return false;
+
+      const entries = loadMemoryMap();
+      const now = Date.now();
+      for (const key of keys) {
+        const sig = computeChecksum(`${key}::${cleanReply}`, MEM_SALT);
+        entries[key] = { a: cleanReply, s: sig, t: now };
+      }
+
+      const allKeys = Object.keys(entries);
+      if (allKeys.length > 1000) {
+        const dropCount = allKeys.length - 1000;
+        for (let i = 0; i < dropCount; i++) delete entries[allKeys[i]];
+      }
+      saveMemoryMap(entries);
+      return true;
+    }
+
+    clearCacheBtn.addEventListener("click", () => {
+      inMemorySessionCache = {};
+      try { localStorage.removeItem(MEMORY_STORAGE_KEY); } catch (e) {}
+      updateMemoryCounter();
+      bottomTypingText.textContent = "Trained memory wiped.";
+    });
+
+    function getAssistantName() {
+      try { return localStorage.getItem(NAME_STORAGE_KEY) || "Dragon AI"; } catch (e) { return "Dragon AI"; }
+    }
+
+    function setAssistantName(newName) {
+      const clean = String(newName || "").trim();
+      if (!clean) return;
+      try { localStorage.setItem(NAME_STORAGE_KEY, clean); } catch (e) {}
+    }
+
+    function extractCleanName(rawText) {
+      const cleaned = String(rawText || "")
+        .replace(/^(?:ye\s+baat\s+|yeh\s+baat\s+|is\s+baat\s+ko\s+|ise\s+|यह\s+बात\s+|इस\s+बात\s+को\s+|इसे\s+)?(?:yaad\s+rakho|yaad\s+rakhna|yaad\s+rakhiye|याद\s+रखो|याद\s+रखना|याद\s+रखिए|remember\s+this|remember)\s*(?:ki\s+|कि\s+)?[:\-]?\s*/i, "")
+        .trim();
+
+      const patterns = [
+        /(?:aapka|tumhara|tera|is\s+ai\s+ka|ai\s+ka|hud\s+ka|आपका|तुम्हारा|तेरा)\s+(?:naam|नाम)\s+(?:hai\s+|है\s+|hoga\s+|होगा\s+)?(.+?)(?:\s+(?:hai|है|hoga|होगा|samjho|yaad\s+rakho|yaad\s+rakhna|rakhiye))?$/i,
+        /(?:call\s+(?:yourself|you)|your\s+name\s+is)\s+(.+)$/i
+      ];
+
+      for (const re of patterns) {
+        const m = cleaned.match(re);
+        if (m && m[1]) {
+          const candidate = m[1]
+            .replace(/[.!?।]+$/g, "")
+            .replace(/\b(?:aur|bhi|toh|to|yaad|rakho|rakhna|baaki|baatein|nahi|mat)\b.*$/i, "")
+            .trim();
+          const invalid = ["kya", "kaun", "क्या", "कौन", "nahi", "नहीं", "hai", "है", ""];
+          if (!invalid.includes(candidate.toLowerCase())) return candidate;
+        }
+      }
+      return null;
+    }
+
+    function isIdentityQuestion(qLower) {
+      return (
+        qLower.includes("aapka naam") || qLower.includes("tumhara naam") || qLower.includes("tera naam") ||
+        qLower.includes("your name") || qLower.includes("kaun ho") || qLower.includes("who are you") ||
+        qLower.includes("आपका नाम") || qLower.includes("तुम्हारा नाम") || qLower.includes("कौन हो")
+      );
+    }
+
+    function isCreatorOrOwnerQuestion(qLower) {
+      return (
+        /(banaya|बनाया|banane|बनाने|created|made you|developer|creator|company|कंपनी|owner|malik|ओनर|मालिक|kisne|किसने|kaun hai jisne)/.test(qLower) &&
+        /(aap|tum|tera|tumhe|aapko|mujhe|is ai|ai ko|hud|आप|तुम|तेरा|तुम्हें|आपको|मुझे|बनाया|बनाने|ओनर|मालिक)/.test(qLower)
+      );
+    }
+
+    function getRichOwnerCreatorReply() {
+      const aiName = getAssistantName();
+      const romanOptions = [
+        `Banane wale Saan hain—maker, coder aur creator. Saan hi asli owner hain.`,
+        `Mera owner aur creator Saan hain. Unhone hi mujhe design kiya hai.`,
+        `Main ${aiName} hoon, aur Saan mere owner aur creator dono hain.`
+      ];
+      const hiOptions = [
+        `बनाने वाले शान हैं—मेकर, कोडर और क्रिएटर। शान ही असली ओनर हैं।`,
+        `मेरा ओनर और क्रिएटर शान हैं। शान ने ही मुझे तैयार किया है।`,
+        `मुझे शान ने बनाया है, और शान ही मेरे ओनर हैं।`
+      ];
+      const enOptions = [
+        `Created by Saan—maker, coder, and builder. Saan is my sole owner.`,
+        `Saan is my creator and owner.`
+      ];
+      const pool = currentLang === "hi-IN" ? hiOptions : currentLang === "en-IN" ? enOptions : romanOptions;
+      const pick = pool[ownerReplyIndex % pool.length];
+      ownerReplyIndex += 1;
+      return pick;
+    }
+
+    function getSoftwareCostPowerReply(qLower) {
+      const asksSoftware = /(software|code|program|script|module|system|andar kya|अंदर क्या|सॉफ्टवेयर|कोड|सिस्टम)/.test(qLower);
+      const asksCost = /(cost|kharcha|kharch|paisa|paise|budget|kimat|कीमत|खर्चा|खर्च|पैसे|बजट)/.test(qLower);
+      const asksPower = /(power|powerful|shakti|taqat|kitne|kya kar sakte|पावर|पावरफुल|ताकत|शक्ति|कितने)/.test(qLower);
+      if (!asksSoftware && !asksCost && !asksPower) return null;
+
+      if (currentLang === "hi-IN") {
+        return "अंदर कस्टम न्यूरल HUD, मेल क्लियर वॉयस इंजन, इंस्टेंट ट्रेनिंग मेमोरी और PRO व SPECIAL मोड्स हैं। शान ने बनाया है।";
+      }
+      if (currentLang === "en-IN") {
+        return "Custom neural HUD, clear male voice engine, instant training memory, and PRO/SPECIAL modes built by Saan.";
+      }
+      return "Andar custom neural HUD, clear male voice engine, instant training memory aur PRO/SPECIAL modes hain. Saan ne banaya hai.";
+    }
+
+    function getCalendarDayReply(qLower) {
+      const hasDayOrDateWord = /(din|day|tarikh|date|वार|दिन|तारीख)/.test(qLower);
+      if (!hasDayOrDateWord) return null;
+
+      let offsetDays = 0;
+      let label = "Aaj";
+      if (/(parso|परसों)/.test(qLower)) { offsetDays = 2; label = "Parso"; }
+      else if (/(kal|कल)/.test(qLower)) { offsetDays = 1; label = "Kal"; }
+
+      const target = new Date();
+      target.setDate(target.getDate() + offsetDays);
+
+      const weekdayEn = target.toLocaleDateString("en-US", { weekday: "long" });
+      const weekdayHi = target.toLocaleDateString("hi-IN", { weekday: "long" });
+      const dateShort = target.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+      if (currentLang === "hi-IN") return `${label} ${weekdayHi} (${dateShort}) है।`;
+      if (currentLang === "en-IN") return `${label} is ${weekdayEn} (${dateShort}).`;
+      return `${label} ${weekdayEn} (${dateShort}) hai.`;
+    }
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+      return audioCtx;
+    }
+
+    function playTapSoundMode() {
+      tapPulseBoost = 10;
+      if (!sfxToggle.checked) return;
+      try {
+        const ac = getAudioCtx();
+        if (!ac) return;
+        const now = ac.currentTime;
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+
+        if (currentTapSoundMode === "chirp-mini") {
+          osc.type = "sine"; osc.frequency.setValueAtTime(880, now); osc.frequency.exponentialRampToValueAtTime(1760, now + 0.045);
+        } else if (currentTapSoundMode === "harmonic-pip") {
+          osc.type = "triangle"; osc.frequency.setValueAtTime(528, now); osc.frequency.exponentialRampToValueAtTime(1056, now + 0.055);
+        } else if (currentTapSoundMode === "sonar-beep") {
+          osc.type = "sine"; osc.frequency.setValueAtTime(1320, now); osc.frequency.exponentialRampToValueAtTime(660, now + 0.06);
+        } else if (currentTapSoundMode === "synth-click") {
+          osc.type = "sawtooth"; osc.frequency.setValueAtTime(720, now); osc.frequency.exponentialRampToValueAtTime(1440, now + 0.035);
+        } else {
+          osc.type = "sine"; osc.frequency.setValueAtTime(1100, now); osc.frequency.exponentialRampToValueAtTime(1500, now + 0.03);
+        }
+
+        gain.gain.setValueAtTime(0.065, now);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.065);
+        osc.connect(gain); gain.connect(ac.destination);
+        osc.start(now); osc.stop(now + 0.07);
+      } catch (e) {}
+    }
+
+    function playEmoteSound(soundKey) {
+      tapPulseBoost = 14;
+      if (!sfxToggle.checked) return;
+      try {
+        const ac = getAudioCtx();
+        if (!ac) return;
+        const now = ac.currentTime;
+        const notesMap = {
+          "lock-on": [660, 990, 1320],
+          "turbo-rise": [480, 960, 1440, 1920],
+          "soft-drop": [880, 660, 440],
+          "ghost-pulse": [540, 810, 540],
+          "star-chord": [587, 880, 1174, 1760]
+        };
+        const seq = notesMap[soundKey] || notesMap["lock-on"];
+        seq.forEach((freq, idx) => {
+          const osc = ac.createOscillator();
+          const gain = ac.createGain();
+          osc.type = soundKey === "turbo-rise" ? "sawtooth" : soundKey === "soft-drop" ? "sine" : "triangle";
+          const t = now + idx * 0.032;
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.075, t);
+          gain.gain.exponentialRampToValueAtTime(0.0008, t + 0.055);
+          osc.connect(gain); gain.connect(ac.destination);
+          osc.start(t); osc.stop(t + 0.06);
+        });
+      } catch (e) {}
+    }
+
+    function triggerMiniTapAnimation(x, y) {
+      const pip = document.createElement("div");
+      pip.className = "mini-voice-pip";
+      pip.style.left = `${x}px`; pip.style.top = `${y}px`;
+      clickFxLayer.appendChild(pip);
+      setTimeout(() => pip.remove(), 360);
+
+      if (currentTapAnimMode === "hex-sm") {
+        const hex = document.createElement("div");
+        hex.className = "tap-hex-sm";
+        hex.style.left = `${x}px`; hex.style.top = `${y}px`;
+        clickFxLayer.appendChild(hex);
+        setTimeout(() => hex.remove(), 340);
+      } else if (currentTapAnimMode === "ring-sm") {
+        const ring = document.createElement("div");
+        ring.className = "tap-ring-sm";
+        ring.style.left = `${x}px`; ring.style.top = `${y}px`;
+        clickFxLayer.appendChild(ring);
+        setTimeout(() => ring.remove(), 340);
+      } else if (currentTapAnimMode === "shard-sm") {
+        const count = 6;
+        for (let i = 0; i < count; i++) {
+          const shard = document.createElement("div");
+          shard.className = "tap-shard-sm";
+          shard.style.left = `${x}px`; shard.style.top = `${y}px`;
+          const rad = (Math.PI * 2 * i) / count;
+          shard.style.setProperty("--sx", `${Math.round(Math.cos(rad) * 14)}px`);
+          shard.style.setProperty("--sy", `${Math.round(Math.sin(rad) * 14)}px`);
+          clickFxLayer.appendChild(shard);
+          setTimeout(() => shard.remove(), 340);
+        }
+      } else if (currentTapAnimMode === "pip-sm") {
+        const box = document.createElement("div");
+        box.className = "tap-pip-sm";
+        box.style.left = `${x}px`; box.style.top = `${y}px`;
+        clickFxLayer.appendChild(box);
+        setTimeout(() => box.remove(), 360);
+      } else {
+        const rays = 6;
+        for (let i = 0; i < rays; i++) {
+          const ray = document.createElement("div");
+          ray.className = "tap-dot-ray";
+          ray.style.left = `${x}px`; ray.style.top = `${y}px`;
+          ray.style.setProperty("--ang", `${(360 / rays) * i}deg`);
+          clickFxLayer.appendChild(ray);
+          setTimeout(() => ray.remove(), 320);
+        }
+      }
+
+      coreOrbBtn.classList.add("shock");
+      setTimeout(() => coreOrbBtn.classList.remove("shock"), 110);
+    }
+
+    document.addEventListener("pointerdown", (e) => {
+      if ("speechSynthesis" in window) {
+        try {
+          if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+          refreshVoiceList();
+        } catch (err) {}
+      }
+      triggerMiniTapAnimation(e.clientX, e.clientY);
+      playTapSoundMode();
+    });
+
+    setInterval(() => { clockEl.textContent = new Date().toLocaleTimeString("en-GB"); }, 1000);
+
+    openSettingsBtn.addEventListener("click", () => {
+      populateVoices();
+      updateMemoryCounter();
+      settingsOverlay.classList.add("open");
+    });
+    closeSettingsBtn.addEventListener("click", () => { settingsOverlay.classList.remove("open"); });
+    settingsOverlay.addEventListener("click", (e) => { if (e.target === settingsOverlay) settingsOverlay.classList.remove("open"); });
+
+    function showAlert(msg) { alertStrip.style.display = "block"; alertStrip.textContent = msg; }
+
+    function populateVoices() {
+      if (!("speechSynthesis" in window)) return;
+      const list = refreshVoiceList();
+      const bestVoice = findBestVoice(list, VOICE_PROFILES[currentVoiceProfile]?.genderHint || "male");
+      voiceSelect.innerHTML = `<option value="">Auto Best Male/Clear Voice (Locked)</option>`;
+      list.forEach((v) => {
+        const opt = document.createElement("option");
+        opt.value = v.voiceURI;
+        const bestTag = bestVoice && v.voiceURI === bestVoice.voiceURI ? " [BEST]" : "";
+        opt.textContent = `${v.name} (${v.lang})${bestTag}`;
+        voiceSelect.appendChild(opt);
+      });
+      if (userLockedVoiceURI) voiceSelect.value = userLockedVoiceURI;
+    }
+    populateVoices();
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.onvoiceschanged = () => populateVoices();
+    }
+
+    presetGrid.addEventListener("click", (e) => {
+      const btn = e.target.closest(".preset-btn");
+      if (!btn) return;
+      applyNeuralMode(btn.dataset.preset, true);
+    });
+
+    voiceProfilePills.addEventListener("click", (e) => {
+      const pill = e.target.closest(".theme-pill");
+      if (!pill || !pill.dataset.vprofile) return;
+      applyVoiceProfile(pill.dataset.vprofile, true);
+    });
+
+    voiceSelect.addEventListener("change", () => {
+      userLockedVoiceURI = voiceSelect.value;
+      saveUserPrefs();
+    });
+
+    tapAnimModePills.addEventListener("click", (e) => {
+      const pill = e.target.closest(".theme-pill");
+      if (!pill || !pill.dataset.tanim) return;
+      currentTapAnimMode = pill.dataset.tanim;
+      tapAnimModePills.querySelectorAll(".theme-pill").forEach((p) => p.classList.toggle("active-mode", p.dataset.tanim === currentTapAnimMode));
+    });
+
+    tapSoundModePills.addEventListener("click", (e) => {
+      const pill = e.target.closest(".theme-pill");
+      if (!pill || !pill.dataset.tsound) return;
+      currentTapSoundMode = pill.dataset.tsound;
+      tapSoundModePills.querySelectorAll(".theme-pill").forEach((p) => p.classList.toggle("active-mode", p.dataset.tsound === currentTapSoundMode));
+    });
+
+    emoteModePills.addEventListener("click", (e) => {
+      const pill = e.target.closest(".theme-pill");
+      if (!pill || !pill.dataset.emode) return;
+      currentEmoteMode = pill.dataset.emode;
+      emoteModePills.querySelectorAll(".theme-pill").forEach((p) => p.classList.toggle("active-mode", p.dataset.emode === currentEmoteMode));
+      syncBodyClasses();
+      triggerFaceTapReaction();
+      playEmoteSound(currentEmoteSound);
+    });
+
+    emoteSoundPills.addEventListener("click", (e) => {
+      const pill = e.target.closest(".theme-pill");
+      if (!pill || !pill.dataset.esound) return;
+      currentEmoteSound = pill.dataset.esound;
+      emoteSoundPills.querySelectorAll(".theme-pill").forEach((p) => p.classList.toggle("active-mode", p.dataset.esound === currentEmoteSound));
+      playEmoteSound(currentEmoteSound);
+    });
+
+    rateSlider.addEventListener("input", () => {
+      userLockedRate = parseFloat(rateSlider.value);
+      rateVal.textContent = `${userLockedRate.toFixed(2)}x`;
+      saveUserPrefs();
+    });
+    pitchSlider.addEventListener("input", () => {
+      userLockedPitch = parseFloat(pitchSlider.value);
+      pitchVal.textContent = userLockedPitch.toFixed(2);
+      saveUserPrefs();
+    });
+
+    langSelect.addEventListener("change", () => {
+      currentLang = langSelect.value;
+      saveUserPrefs();
+      updateConfigHeader();
+      if (rec) rec.lang = currentLang === "roman-hi" ? "hi-IN" : currentLang;
+    });
+
+    function updateConfigHeader() {
+      const pLabel = VOICE_PRESETS[currentPreset].label;
+      const vLabel = VOICE_PROFILES[currentVoiceProfile]?.label || "MALE-PRO";
+      const subLabel = PRO_SUB_MODES[currentProSubMode].label;
+      const lMap = { "roman-hi": "ROMAN-HI", "hi-IN": "HINDI", "en-IN": "ENGLISH", "ur-IN": "URDU" };
+      activeConfigTag.textContent = `${pLabel} // ${vLabel} // ${subLabel}`;
+      consoleLangLabel.textContent = `${lMap[currentLang]} // ${subLabel}`;
+    }
+
+    clearChatBtn.addEventListener("click", () => {
+      feed.innerHTML = "";
+      conversationMemory.length = 0;
+      lastProcessedInput = "";
+      bottomTypingText.textContent = "Console reset.";
+      typingCharCount.textContent = "0 CHARS";
+    });
+
+    function getLocalizedSample(presetKey) {
+      const name = VOICE_PRESETS[presetKey].label;
+      const vName = VOICE_PROFILES[currentVoiceProfile]?.label || "MALE-PRO";
+      const subName = PRO_SUB_MODES[currentProSubMode]?.label || "PRO";
+      if (currentLang === "en-IN") return `${name}, ${vName} voice, and ${subName} mode active. Speaker test successful.`;
+      if (currentLang === "hi-IN") return `${name}, ${vName} आवाज़ और ${subName} मोड एक्टिव है। स्पीकर बिल्कुल साफ़ चल रहा है।`;
+      return `${name}, ${vName} awaaz aur ${subName} mode active hai. Speaker bilkul saaf chal raha hai.`;
+    }
+
+    function polishTextForSpeech(rawText) {
+      let t = String(rawText || "")
+        .replace(/[*_`#~]+/g, " ")
+        .replace(/\/+/g, " ")
+        .replace(/\n+/g, ". ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (!clarityPolishToggle || !clarityPolishToggle.checked) return t;
+
+      const wordFixes = [
+        [/\bhoon\b/gi, "hun"],
+        [/\bhai\b/gi, "hai"],
+        [/\bhain\b/gi, "hain"],
+        [/\bkyunki\b/gi, "kyonki"],
+        [/\bmujhe\b/gi, "mujhay"],
+        [/\btumhe\b/gi, "tumhay"],
+        [/\bunhe\b/gi, "unhay"],
+        [/\bkaun\b/gi, "kaun"],
+        [/\bkya\b/gi, "kya"],
+        [/\bzindagi\b/gi, "zindagi"],
+        [/\bwaqt\b/gi, "waqt"],
+        [/\bshuru\b/gi, "shuru"],
+        [/\bkhatam\b/gi, "khatam"],
+        [/\bzyada\b/gi, "zyada"],
+        [/\bbilkul\b/gi, "bilkul"],
+        [/\bsamajh\b/gi, "samajh"],
+        [/\bkharcha\b/gi, "kharcha"],
+        [/\baapka\b/gi, "aapka"],
+        [/\btumhara\b/gi, "tumhara"],
+        [/\basaan\b/gi, "asaan"],
+        [/\bmushkil\b/gi, "mushkil"],
+        [/\bjaroor\b/gi, "zaroor"],
+        [/\bzaroori\b/gi, "zaroori"],
+        [/\bhamesh[a]?\b/gi, "hamesha"],
+        [/\bdekho\b/gi, "dekho"],
+        [/\bsuno\b/gi, "suno"],
+        [/\bbolo\b/gi, "bolo"]
+      ];
+
+      for (const [re, rep] of wordFixes) {
+        t = t.replace(re, rep);
+      }
+
+      return t.replace(/([.!?;:।,])\s*/g, "$1 ").replace(/\s+/g, " ").trim();
+    }
+
+    let phase = 0;
+    function renderWave() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const mid = canvas.height / 2;
+      if (tapPulseBoost > 0) tapPulseBoost = Math.max(0, tapPulseBoost - 0.85);
+      const amp = isSpeaking ? 16 : isListening ? 12 : isTypingStream ? 7 : (2.5 + tapPulseBoost * 0.7);
+      const primaryColor = getComputedStyle(document.body).getPropertyValue("--primary").trim() || "#00f3ff";
+      const redColor = getComputedStyle(document.body).getPropertyValue("--red").trim() || "#ff2e63";
+      const greenColor = getComputedStyle(document.body).getPropertyValue("--green").trim() || "#00ff9d";
+
+      ctx.beginPath();
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = isSpeaking ? greenColor : isListening ? redColor : primaryColor;
+
+      for (let x = 0; x < canvas.width; x++) {
+        const env = Math.sin((x / canvas.width) * Math.PI);
+        const y = mid + Math.sin(x * 0.045 + phase) * amp * env;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      phase += (isSpeaking || isListening || isTypingStream || tapPulseBoost > 0) ? 0.24 : 0.04;
+      requestAnimationFrame(renderWave);
+    }
+    renderWave();
+
+    function setVisualMode(mode) {
+      coreOrbBtn.classList.remove("listening", "speaking");
+      stateBadge.classList.remove("mic-on", "spk-on");
+
+      if (mode === "LISTENING") {
+        isListening = true; isSpeaking = false;
+        coreOrbBtn.classList.add("listening"); stateBadge.classList.add("mic-on");
+        stateBadge.textContent = continuousMic ? "LIVE MIC // ALWAYS ON" : "MIC // LISTENING";
+      } else if (mode === "SPEAKING") {
+        isListening = false; isSpeaking = true;
+        coreOrbBtn.classList.add("speaking"); stateBadge.classList.add("spk-on");
+        stateBadge.textContent = "SPEAKER // ACTIVE";
+      } else {
+        isListening = false; isSpeaking = false;
+        stateBadge.textContent = continuousMic ? "LIVE MIC // ALWAYS ON" : `MODE // ${PRO_SUB_MODES[currentProSubMode].label}`;
+      }
+    }
+
+    function addBubble(sender, text, topicTag = "") {
+      const div = document.createElement("div");
+      div.className = `bubble ${sender === "USER" ? "user" : "ai"}`;
+
+      const head = document.createElement("span");
+      head.className = "who";
+
+      const whoName = document.createElement("span");
+      whoName.textContent = sender;
+      head.appendChild(whoName);
+
+      if (topicTag && sender !== "USER") {
+        const pill = document.createElement("span");
+        pill.className = "topic-pill";
+        pill.textContent = topicTag;
+        head.appendChild(pill);
+      }
+
+      div.appendChild(head);
+      const bodySpan = document.createElement("span");
+      bodySpan.textContent = text;
+      div.appendChild(bodySpan);
+
+      feed.appendChild(div);
+      feed.scrollTop = feed.scrollHeight;
+      return bodySpan;
+    }
+
+    function tryEvaluateMath(expr) {
+      const cleaned = expr
+        .toLowerCase()
+        .replace(/calculate|solve|kitna hoga|batao|what is|plus|add/g, " ")
+        .replace(/into|multiply|multiplied by|x/g, "*")
+        .replace(/divide|divided by|by/g, "/")
+        .replace(/minus|subtract/g, "-")
+        .replace(/[^0-9+\-*/().%\s]/g, "")
+        .trim();
+
+      if (!cleaned || !/[+\-*/%]/.test(cleaned)) return null;
+      const tokens = cleaned.match(/[0-9]+(?:\.[0-9]+)?|[+\-*/()%]/g);
+      if (!tokens || tokens.length < 3) return null;
+
+      try {
+        const result = Function(`"use strict"; return (${tokens.join(" ")});`)();
+        if (typeof result === "number" && Number.isFinite(result)) {
+          return Number.isInteger(result) ? String(result) : result.toFixed(4).replace(/\.?0+$/, "");
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    async function discoverAvailableModels(apiKey) {
+      try {
+        const cachedRaw = sessionStorage.getItem(MODEL_CACHE_KEY);
+        if (cachedRaw) {
+          const parsed = JSON.parse(cachedRaw);
+          if (Array.isArray(parsed) && parsed.length) {
+            discoveredModelQueue = parsed;
+            return parsed;
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`);
+        const data = await res.json().catch(() => null);
+        if (res.ok && Array.isArray(data?.models)) {
+          const usable = data.models
+            .filter((m) => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes("generateContent"))
+            .map((m) => String(m.name || "").replace(/^models\//, ""))
+            .filter(Boolean);
+
+          usable.sort((a, b) => {
+            const rank = (name) => {
+              const n = name.toLowerCase();
+              if (n.includes("flash") && !n.includes("lite")) return 0;
+              if (n.includes("flash-lite")) return 1;
+              if (n.includes("pro")) return 2;
+              return 3;
+            };
+            return rank(a) - rank(b);
+          });
+
+          if (usable.length) {
+            discoveredModelQueue = usable;
+            try { sessionStorage.setItem(MODEL_CACHE_KEY, JSON.stringify(usable)); } catch (e) {}
+            return usable;
+          }
+        }
+      } catch (e) {}
+
+      const fallback = ["gemini-2.5-flash", "gemini-2.0-flash"];
+      discoveredModelQueue = fallback;
+      return fallback;
+    }
+
+    async function callModelOnce(apiKey, model, systemText, contents, timeoutMs = 7500) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemText }] },
+            contents,
+            generationConfig: { temperature: isProMode ? 0.65 : 0.6, maxOutputTokens: 1400 }
+          })
+        });
+
+        const data = await res.json().catch(() => null);
+        if (!res.ok) return { ok: false, notFound: res.status === 404, error: data?.error?.message || `HTTP ${res.status}` };
+
+        const cand = data?.candidates?.[0];
+        const parts = cand?.content?.parts || [];
+        const replyText = parts.map((p) => p.text || "").join("").trim();
+        if (!replyText) return { ok: false, notFound: false, error: "Empty response" };
+
+        return { ok: true, text: replyText };
+      } catch (err) {
+        return { ok: false, notFound: false, error: err?.name === "AbortError" ? "Timeout" : (err?.message || "Network error") };
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function askGemini(userText, feeling = "NEUTRAL") {
+      const apiKey = readVaultKey();
+      const localSubReply = buildProSubModeLocalReply(userText, feeling);
+      if (!apiKey) {
+        return {
+          topic: `${PRO_SUB_MODES[currentProSubMode].label}`,
+          text: localSubReply || "Local mode active. Koi bhi sawaal poochho."
+        };
+      }
+
+      const aiName = getAssistantName();
+      const activeSub = PRO_SUB_MODES[currentProSubMode] || PRO_SUB_MODES.pro;
+
+      const langInstruction =
+        currentLang === "hi-IN"
+          ? "जवाब तेज़, साफ़ और सरल हिंदी में दें।"
+          : currentLang === "en-IN"
+          ? "Reply fast, clearly, and concisely in English."
+          : currentLang === "ur-IN"
+          ? "جواب تیز، صاف اور سادہ اردو میں دیں۔"
+          : "Jawab tez, saaf aur aasan Roman Hindi (Hinglish) mein do.";
+
+      const systemText = `${aiName}, built by Saan (owner & creator). Never mention Google or Gemini. Feeling: ${feeling}. ${activeSub.prompt} ${langInstruction}`;
+
+      const recentHistory = conversationMemory.slice(-4).map((m) => ({
+        role: m.role === "user" ? "user" : "model",
+        parts: [{ text: m.text }]
+      }));
+      const contents = recentHistory.length ? recentHistory : [{ role: "user", parts: [{ text: userText }] }];
+
+      let candidates = discoveredModelQueue.length ? [...discoveredModelQueue] : await discoverAvailableModels(apiKey);
+      let lastErr = "API error";
+
+      for (let i = 0; i < candidates.length; i++) {
+        const model = candidates[i];
+        const attempt = await callModelOnce(apiKey, model, systemText, contents, 7500);
+        if (attempt.ok) {
+          const reordered = [model, ...candidates.filter((m) => m !== model)];
+          discoveredModelQueue = reordered;
+          try { sessionStorage.setItem(MODEL_CACHE_KEY, JSON.stringify(reordered)); } catch (e) {}
+
+          const wasTrained = feedApiAnswerToMemory(userText, attempt.text);
+          return {
+            topic: `${activeSub.label} // ${wasTrained ? "FED TO MEMORY" : model.replace(/^gemini-/, "").toUpperCase()}`,
+            text: attempt.text
+          };
+        }
+        lastErr = attempt.error;
+        if (attempt.notFound) {
+          try { sessionStorage.removeItem(MODEL_CACHE_KEY); } catch (e) {}
+        }
+      }
+
+      return {
+        topic: `${activeSub.label} // FALLBACK`,
+        text: localSubReply || `Jawab nahi mil paya (${lastErr}). Connection check karein.`
+      };
+    }
+
+    async function resolveAIResponse(userText) {
+      const trimmed = userText.trim();
+      const q = trimmed.toLowerCase();
+      const detectedFeeling = detectUserFeeling(trimmed);
+      applyFeelingAutoSync(detectedFeeling);
+
+      const instantMem = getInstantMemoryReply(trimmed);
+      if (instantMem) {
+        return { topic: `INSTANT // ${PRO_SUB_MODES[currentProSubMode].label}`, text: instantMem };
+      }
+
+      const extractedName = extractCleanName(trimmed);
+      if (extractedName) {
+        setAssistantName(extractedName);
+        if (currentLang === "hi-IN") return { topic: "NAME // SAVED", text: `नाम ${extractedName} सेट है।` };
+        if (currentLang === "en-IN") return { topic: "NAME // SAVED", text: `Name set to ${extractedName}.` };
+        if (currentLang === "ur-IN") return { topic: "NAME // SAVED", text: `نام ${extractedName} سیٹ ہے۔` };
+        return { topic: "NAME // SAVED", text: `Naam ${extractedName} set hai.` };
+      }
+
+      if (isCreatorOrOwnerQuestion(q)) {
+        return { topic: "OWNER // SAAN", text: getRichOwnerCreatorReply() };
+      }
+
+      if (isIdentityQuestion(q)) {
+        const aiName = getAssistantName();
+        if (currentLang === "hi-IN") return { topic: "IDENTITY", text: `मैं ${aiName} हूँ, क्रिएटर शान।` };
+        if (currentLang === "en-IN") return { topic: "IDENTITY", text: `I am ${aiName}, built by Saan.` };
+        if (currentLang === "ur-IN") return { topic: "IDENTITY", text: `میں ${aiName} ہوں، تخلیق کار شان۔` };
+        return { topic: "IDENTITY", text: `Main ${aiName} hoon, creator Saan.` };
+      }
+
+      const specReply = getSoftwareCostPowerReply(q);
+      if (specReply) return { topic: "CORE SPECS", text: specReply };
+
+      const calReply = getCalendarDayReply(q);
+      if (calReply) return { topic: "REALTIME // DAY", text: calReply };
+
+      const mathAns = tryEvaluateMath(q);
+      if (mathAns !== null) return { topic: "CALC", text: `${mathAns}` };
+
+      if (/\b(time|samay|kitne baje|waqt|समय|वक्त)\b/.test(q)) {
+        const nowStr = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        return { topic: "REALTIME // CLOCK", text: `${nowStr}` };
+      }
+
+      return await askGemini(trimmed, detectedFeeling);
+    }
+
+    function clearSpeechResumeTimer() {
+      if (speechResumeInterval) {
+        clearInterval(speechResumeInterval);
+        speechResumeInterval = null;
+      }
+    }
+
+    function speakMessage(text, onDone) {
+      lastAiReply = text;
+      const myToken = ++speechQueueToken;
+      clearSpeechResumeTimer();
+
+      if (!speakerOn) {
+        if (onDone) onDone();
+        return;
+      }
+
+      if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+        showAlert("Is browser/WebView mein Speech Synthesis available nahi hai.");
+        if (onDone) onDone();
+        return;
+      }
+
+      try {
+        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+        window.speechSynthesis.cancel();
+      } catch (e) {}
+
+      const polished = polishTextForSpeech(text);
+      const rawSegments = polished.split(/(?<=[.!?।,;:])\s+/);
+      const chunks = [];
+      for (const seg of rawSegments) {
+        const s = seg.trim();
+        if (!s) continue;
+        if (s.length <= 150) {
+          chunks.push(s);
+        } else {
+          const words = s.split(/\s+/);
+          let buf = "";
+          for (const w of words) {
+            if ((buf + " " + w).trim().length > 140) {
+              if (buf.trim()) chunks.push(buf.trim());
+              buf = w;
+            } else {
+              buf = (buf + " " + w).trim();
+            }
+          }
+          if (buf.trim()) chunks.push(buf.trim());
+        }
+      }
+
+      if (!chunks.length) {
+        if (onDone) onDone();
+        return;
+      }
+
+      const resolvedVoice = resolveLockedVoice();
+      const safeRate = Math.min(1.15, Math.max(0.82, Number(userLockedRate) || 0.95));
+      const safePitch = Math.min(1.15, Math.max(0.80, Number(userLockedPitch) || 0.92));
+
+      let finished = false;
+      const finishAll = () => {
+        if (finished) return;
+        finished = true;
+        clearSpeechResumeTimer();
+        setVisualMode("IDLE");
+        if (onDone) onDone();
+      };
+
+      speechResumeInterval = setInterval(() => {
+        if (myToken !== speechQueueToken || finished) {
+          clearSpeechResumeTimer();
+          return;
+        }
+        try {
+          if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+        } catch (e) {}
+      }, 450);
+
+      const speakChunkAt = (idx) => {
+        if (myToken !== speechQueueToken || finished || !speakerOn) {
+          finishAll();
+          return;
+        }
+        if (idx >= chunks.length) {
+          finishAll();
+          return;
+        }
+
+        const part = chunks[idx];
+        const utter = new SpeechSynthesisUtterance(part);
+        if (resolvedVoice) {
+          utter.voice = resolvedVoice;
+          utter.lang = resolvedVoice.lang || (currentLang === "en-IN" ? "en-IN" : "hi-IN");
+        } else {
+          utter.lang = currentLang === "en-IN" ? "en-IN" : "hi-IN";
+        }
+        utter.rate = safeRate;
+        utter.pitch = safePitch;
+        utter.volume = 1.0;
+
+        let chunkAdvanced = false;
+        const chunkTimeoutMs = Math.max(3200, part.length * 155 + 1600);
+        const chunkTimer = setTimeout(() => {
+          if (!chunkAdvanced) {
+            chunkAdvanced = true;
+            speakChunkAt(idx + 1);
+          }
+        }, chunkTimeoutMs);
+
+        const advanceNext = () => {
+          if (chunkAdvanced) return;
+          chunkAdvanced = true;
+          clearTimeout(chunkTimer);
+          speakChunkAt(idx + 1);
+        };
+
+        utter.onstart = () => {
+          if (myToken === speechQueueToken && !finished) {
+            setVisualMode("SPEAKING");
+          }
+        };
+        utter.onend = advanceNext;
+        utter.onerror = advanceNext;
+
+        try {
+          if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+          setVisualMode("SPEAKING");
+          window.speechSynthesis.speak(utter);
+        } catch (e) {
+          advanceNext();
+        }
+      };
+
+      setTimeout(() => speakChunkAt(0), 75);
+    }
+
+    function streamFuturisticTyping(fullText, bubbleTextNode, isInstantMem, onComplete) {
+      if (typingTimer) clearInterval(typingTimer);
+
+      if (isInstantMem) {
+        isTypingStream = false;
+        bottomTypingText.textContent = fullText;
+        bubbleTextNode.textContent = fullText;
+        typingCharCount.textContent = `${fullText.length} CHARS`;
+        typingStatus.textContent = "STREAM // INSTANT MEMORY";
+        feed.scrollTop = feed.scrollHeight;
+        if (onComplete) onComplete();
+        return;
+      }
+
+      isTypingStream = true;
+      let idx = 0;
+      bottomTypingText.textContent = "";
+      bubbleTextNode.textContent = "";
+      typingStatus.textContent = "STREAM // TYPING LIVE...";
+
+      const step = fullText.length > 200 ? 18 : 10;
+
+      typingTimer = setInterval(() => {
+        idx = Math.min(fullText.length, idx + step);
+        const slice = fullText.slice(0, idx);
+        bottomTypingText.textContent = slice;
+        bubbleTextNode.textContent = slice;
+        typingCharCount.textContent = `${idx} CHARS`;
+        bottomTypingText.scrollTop = bottomTypingText.scrollHeight;
+        feed.scrollTop = feed.scrollHeight;
+
+        if (idx >= fullText.length) {
+          clearInterval(typingTimer);
+          typingTimer = null;
+          isTypingStream = false;
+          typingStatus.textContent = "STREAM // COMPLETE";
+          if (onComplete) onComplete();
+        }
+      }, 4);
+    }
+
+    function isEchoOfSystem(text) {
+      const norm = text.trim().toLowerCase();
+      if (!norm) return true;
+      const lastAiNorm = (lastAiReply || "").trim().toLowerCase();
+      if (lastAiNorm && lastAiNorm.length > 10 && (lastAiNorm.includes(norm) || norm.includes(lastAiNorm))) return true;
+      const now = Date.now();
+      if (norm === lastProcessedInput && now - lastProcessedAt < 5000) return true;
+      return false;
+    }
+
+    async function deliverSmartResponse(rawText, skipUserBubble = false, forcedTopic = "") {
+      if (!rawText) return;
+      if (isProcessingReply) isProcessingReply = false;
+      const cleanText = rawText.trim();
+      if (!cleanText) return;
+
+      const now = Date.now();
+      if (cleanText.toLowerCase() === lastProcessedInput && now - lastProcessedAt < 1800) return;
+
+      isProcessingReply = true;
+      clearMicRestartTimer();
+      stopMicImmediately();
+
+      if (!skipUserBubble) addBubble("USER", cleanText);
+      lastProcessedInput = cleanText.toLowerCase();
+      lastProcessedAt = now;
+      conversationMemory.push({ role: "user", text: cleanText });
+
+      typingStatus.textContent = `STREAM // ${PRO_SUB_MODES[currentProSubMode].label}...`;
+      const res = await resolveAIResponse(cleanText);
+
+      const reply = typeof res === "string" ? res : res.text;
+      const topicTag = forcedTopic || (typeof res === "object" && res.topic ? res.topic : "RESPONSE");
+      const isInstantMem = topicTag.includes("INSTANT");
+
+      conversationMemory.push({ role: "model", text: reply });
+      lastAiReply = reply;
+
+      const aiSpan = addBubble("DRAGON CORE", "", topicTag);
+
+      let speechDone = !speakerOn;
+      let typingDone = false;
+
+      const tryFinishTurn = () => {
+        if (speechDone && typingDone) {
+          isProcessingReply = false;
+          if (continuousMic && autoLoopToggle.checked) scheduleLiveMicKeepAlive(650);
+        }
+      };
+
+      streamFuturisticTyping(reply, aiSpan, isInstantMem, () => { typingDone = true; tryFinishTurn(); });
+      if (speakerOn) speakMessage(reply, () => { speechDone = true; tryFinishTurn(); });
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec = null;
+
+    function clearMicRestartTimer() {
+      if (micRestartTimer) { clearTimeout(micRestartTimer); micRestartTimer = null; }
+    }
+
+    function stopMicImmediately() {
+      if (!rec) return;
+      try { rec.abort(); } catch (e) { try { rec.stop(); } catch (e2) {} }
+      isListening = false;
+    }
+
+    function startMicOnce() {
+      if (!rec) {
+        showAlert("Is WebView mein Mic available nahi hai. Chrome mein HTTPS ya localhost open karein.");
+        return;
+      }
+      if (isListening || isSpeaking || isTypingStream || isProcessingReply) return;
+      try {
+        speechQueueToken++;
+        clearSpeechResumeTimer();
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+        rec.start();
+      } catch (e) {
+        if (continuousMic) scheduleLiveMicKeepAlive(650);
+      }
+    }
+
+    function scheduleLiveMicKeepAlive(delay = 650) {
+      clearMicRestartTimer();
+      if (!continuousMic || isSpeaking || isTypingStream || isProcessingReply) return;
+      micRestartTimer = setTimeout(() => {
+        if (continuousMic && !isListening && !isSpeaking && !isTypingStream && !isProcessingReply) startMicOnce();
+      }, delay);
+    }
+
+    if (SpeechRecognition) {
+      rec = new SpeechRecognition();
+      rec.lang = "hi-IN";
+      rec.interimResults = true;
+      rec.continuous = false;
+
+      rec.onstart = () => {
+        if (isSpeaking || isTypingStream || isProcessingReply) { stopMicImmediately(); return; }
+        clearMicRestartTimer();
+        liveInterim.textContent = continuousMic
+          ? "Live mic active hai — jab tak band na karein sunta rahega..."
+          : "Sun raha hoon... boliye";
+        setVisualMode("LISTENING");
+      };
+
+      rec.onresult = (event) => {
+        if (isSpeaking || isTypingStream || isProcessingReply) return;
+        let interim = "";
+        let finalStr = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const tr = event.results[i][0].transcript;
+          if (event.results[i].isFinal) finalStr += tr;
+          else interim += tr;
+        }
+        if (interim) liveInterim.textContent = `Live: ${interim}`;
+        if (finalStr.trim()) {
+          const clean = finalStr.trim();
+          if (isEchoOfSystem(clean)) { liveInterim.textContent = "Live mic active hai — sunta rahega..."; return; }
+          liveInterim.textContent = `Captured: ${clean}`;
+          stopMicImmediately();
+          deliverSmartResponse(clean, false);
+        }
+      };
+
+      rec.onerror = (e) => {
+        isListening = false;
+        if (!isSpeaking) setVisualMode("IDLE");
+        const fatalPermErr = e.error === "not-allowed" || e.error === "service-not-allowed" || e.error === "audio-capture";
+        if (fatalPermErr) {
+          continuousMic = false;
+          clearMicRestartTimer();
+          updateMicUI();
+          showAlert(`Mic Error (${e.error}): Chrome mein Mic permission allow karein.`);
+        } else if (continuousMic && !isSpeaking && !isTypingStream && !isProcessingReply) {
+          scheduleLiveMicKeepAlive(650);
+        }
+      };
+
+      rec.onend = () => {
+        isListening = false;
+        if (!isSpeaking) setVisualMode("IDLE");
+        if (continuousMic && !isSpeaking && !isTypingStream && !isProcessingReply) scheduleLiveMicKeepAlive(650);
+      };
+    }
+
+    function updateMicUI() {
+      if (continuousMic) {
+        liveMicBtn.classList.add("active-mic");
+        liveMicBtn.innerHTML = `<span class="led-tag"></span> LIVE MIC: ON`;
+      } else {
+        liveMicBtn.classList.remove("active-mic");
+        liveMicBtn.innerHTML = `<span class="led-tag"></span> LIVE MIC: OFF`;
+      }
+      if (!isListening && !isSpeaking) setVisualMode("IDLE");
+    }
+
+    liveMicBtn.addEventListener("click", () => {
+      continuousMic = !continuousMic;
+      updateMicUI();
+      if (continuousMic) startMicOnce();
+      else {
+        clearMicRestartTimer(); stopMicImmediately();
+        liveInterim.textContent = "Live mic band kar diya gaya hai.";
+        setVisualMode("IDLE");
+      }
+    });
+
+    coreOrbBtn.addEventListener("click", () => {
+      triggerFaceTapReaction();
+      startMicOnce();
+    });
+
+    pushTalkBtn.addEventListener("mousedown", startMicOnce);
+    pushTalkBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startMicOnce(); });
+    const endHold = () => { if (rec && isListening && !continuousMic) stopMicImmediately(); };
+    pushTalkBtn.addEventListener("mouseup", endHold);
+    pushTalkBtn.addEventListener("touchend", endHold);
+
+    speakerPowerBtn.addEventListener("click", () => {
+      speakerOn = !speakerOn;
+      if (speakerOn) {
+        speakerPowerBtn.classList.add("active-spk");
+        speakerPowerBtn.innerHTML = `<span class="led-tag"></span> SPEAKER: ON`;
+        if ("speechSynthesis" in window) {
+          try {
+            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+            refreshVoiceList();
+          } catch (e) {}
+        }
+        speakMessage(getLocalizedSample(currentPreset));
+      } else {
+        speakerPowerBtn.classList.remove("active-spk");
+        speakerPowerBtn.innerHTML = `<span class="led-tag"></span> SPEAKER: OFF`;
+        speechQueueToken++;
+        clearSpeechResumeTimer();
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+        isSpeaking = false; isProcessingReply = false;
+        setVisualMode("IDLE");
+        if (continuousMic) scheduleLiveMicKeepAlive(500);
+      }
+    });
+
+    testSpkBtn.addEventListener("click", () => {
+      speakerOn = true;
+      speakerPowerBtn.classList.add("active-spk");
+      speakerPowerBtn.innerHTML = `<span class="led-tag"></span> SPEAKER: ON`;
+      clearMicRestartTimer(); stopMicImmediately();
+      speakMessage(getLocalizedSample(currentPreset), () => { if (continuousMic) scheduleLiveMicKeepAlive(650); });
+    });
+
+    replayBtn.addEventListener("click", () => {
+      speakerOn = true;
+      speakerPowerBtn.classList.add("active-spk");
+      speakerPowerBtn.innerHTML = `<span class="led-tag"></span> SPEAKER: ON`;
+      clearMicRestartTimer(); stopMicImmediately();
+      speakMessage(lastAiReply, () => { if (continuousMic) scheduleLiveMicKeepAlive(650); });
+    });
+
+    stopSpkBtn.addEventListener("click", () => {
+      speechQueueToken++;
+      clearSpeechResumeTimer();
+      if (typingTimer) { clearInterval(typingTimer); typingTimer = null; }
+      isTypingStream = false; isSpeaking = false; isProcessingReply = false;
+      typingStatus.textContent = "STREAM // STOPPED";
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      setVisualMode("IDLE");
+      if (continuousMic) scheduleLiveMicKeepAlive(550);
+    });
+
+    cmdForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      playEmoteSound(currentEmoteSound);
+      const val = cmdInput.value.trim();
+      if (!val) return;
+      cmdInput.value = "";
+      deliverSmartResponse(val, false);
+    });
+
+    loadUserPrefs();
+    langSelect.value = currentLang;
+    applyNeuralMode(currentPreset, false);
+    applyProSubMode(currentProSubMode);
+    syncProModeUI();
+    updateMemoryCounter();
+
+    const initialKey = readVaultKey();
+    if (initialKey) discoverAvailableModels(initialKey).catch(() => {});
+  </script>
+</body>
+</html>
